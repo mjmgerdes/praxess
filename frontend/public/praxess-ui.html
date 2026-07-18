@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  a { color: oklch(0.55 0.13 250); text-decoration: none; }
+  a:hover { color: oklch(0.45 0.12 255); }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: oklch(0.88 0.01 255); border-radius: 6px; border: 3px solid transparent; background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background: oklch(0.8 0.01 255); background-clip: padding-box; border: 3px solid transparent; }
+  @keyframes prx-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  @keyframes prx-scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(1400%); } }
+  @keyframes prx-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+</style>
+</helmet>
+
+<div style="height:100vh;display:flex;flex-direction:column;background:oklch(0.985 0.005 245);font-family:'IBM Plex Sans',system-ui,sans-serif;color:oklch(0.30 0.03 258);overflow:hidden;">
+
+  <!-- ===== TOP BAR ===== -->
+  <header style="display:flex;align-items:center;gap:24px;padding:0 24px;height:60px;background:#fff;border-bottom:1px solid oklch(0.91 0.008 255);flex-shrink:0;z-index:5;">
+    <div style="display:flex;align-items:center;gap:11px;">
+      <div style="width:26px;height:26px;border-radius:7px;background:oklch(0.45 0.12 255);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px oklch(0.93 0.03 250);">
+        <div style="width:9px;height:9px;border-radius:50%;border:2px solid #fff;"></div>
+      </div>
+      <span style="font-weight:700;font-size:17px;letter-spacing:-0.01em;">Praxess</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);border:1px solid oklch(0.9 0.008 255);border-radius:5px;padding:2px 6px;">Closed-loop PA agent</span>
+    </div>
+    <div style="width:1px;height:26px;background:oklch(0.91 0.008 255);"></div>
+    <div style="display:flex;flex-direction:column;gap:1px;">
+      <span style="font-size:13px;font-weight:600;">Kovacek, Emory · 22M</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(0.55 0.02 258);">CASE PA-4471 · MRI lumbar spine w/o contrast (72148)</span>
+    </div>
+    <div style="flex:1;"></div>
+    <div style="display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(0.55 0.02 258);">
+      <span style="width:7px;height:7px;border-radius:50%;background:{{ engineDot }};animation:prx-pulse 2s infinite;"></span>
+      {{ engineLabel }}
+    </div>
+    <div style="width:30px;height:30px;border-radius:50%;background:oklch(0.93 0.02 250);border:1px solid oklch(0.88 0.01 255);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:oklch(0.45 0.12 255);">DR</div>
+  </header>
+
+  <!-- ===== PATH TO APPROVAL ===== -->
+  <div style="display:flex;align-items:center;gap:32px;padding:13px 24px;background:#fff;border-bottom:1px solid oklch(0.91 0.008 255);flex-shrink:0;">
+    <div style="display:flex;flex-direction:column;gap:2px;min-width:205px;">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);">Path to approval</span>
+      <div style="display:flex;align-items:baseline;gap:9px;">
+        <span style="font-size:23px;font-weight:700;letter-spacing:-0.01em;color:{{ caseColor }};font-family:'IBM Plex Mono',monospace;">{{ casePct }}%</span>
+        <span style="font-size:12px;font-weight:500;color:{{ caseColor }};">{{ caseStatus }}</span>
+      </div>
+      <span style="font-size:11px;color:oklch(0.62 0.015 258);">Goal &middot; authorization so Emory receives his MRI</span>
+    </div>
+
+    <div style="flex:1;display:flex;align-items:flex-start;">
+      <sc-for list="{{ milestones }}" as="m" hint-placeholder-count="5">
+        <div style="display:flex;align-items:flex-start;{{ m.flex }}">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:76px;flex-shrink:0;">
+            <span style="width:20px;height:20px;border-radius:50%;background:{{ m.dot }};border:2px solid {{ m.ring }};color:{{ m.markColor }};display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;">{{ m.mark }}</span>
+            <span style="font-size:10.5px;text-align:center;line-height:1.25;color:{{ m.textColor }};font-weight:{{ m.weight }};">{{ m.label }}</span>
+          </div>
+          <sc-if value="{{ m.connector }}" hint-placeholder-val="{{ true }}">
+            <span style="flex:1;height:2px;background:{{ m.lineColor }};margin-top:9px;border-radius:2px;transition:background .5s;"></span>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:6px;min-width:158px;">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:oklch(0.6 0.02 258);">Coverage readiness</span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:{{ readinessColor }};">{{ readinessPct }}%</span>
+      </div>
+      <div style="height:5px;border-radius:4px;background:oklch(0.94 0.006 258);overflow:hidden;">
+        <div style="height:100%;border-radius:4px;background:{{ readinessColor }};width:{{ readinessPct }}%;transition:width .6s cubic-bezier(.4,0,.2,1);"></div>
+      </div>
+      <div style="display:flex;gap:5px;margin-top:1px;">
+        <sc-for list="{{ criteria }}" as="c" hint-placeholder-count="5">
+          <span title="{{ c.label }}" style="width:20px;height:18px;border-radius:5px;background:{{ c.chipBg }};color:{{ c.chipColor }};display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;border:1px solid {{ c.chipBorder }};">{{ c.id }}</span>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;min-height:0;">
+
+    <!-- ===== LEFT RAIL ===== -->
+    <nav style="width:240px;flex-shrink:0;background:#fff;border-right:1px solid oklch(0.91 0.008 255);padding:16px 12px;display:flex;flex-direction:column;gap:2px;overflow:auto;">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.68 0.015 258);padding:6px 10px 8px;">The loop</span>
+      <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="7">
+        <button onClick="{{ n.onClick }}" style="display:flex;align-items:center;gap:11px;text-align:left;padding:9px 10px;border-radius:8px;border:1px solid {{ n.border }};background:{{ n.bg }};cursor:pointer;font-family:'IBM Plex Sans',sans-serif;transition:background .15s;">
+          <span style="width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:{{ n.markBg }};color:{{ n.glyphColor }};border:1.5px solid {{ n.markBorder }};">
+            {{ n.glyph }}
+            <sc-if value="{{ n.dotColor }}" hint-placeholder-val="">
+              <span style="width:8px;height:8px;border-radius:50%;background:{{ n.dotColor }};{{ n.dotAnim }}"></span>
+            </sc-if>
+          </span>
+          <span style="display:flex;flex-direction:column;gap:1px;min-width:0;">
+            <span style="font-size:13px;font-weight:{{ n.weight }};color:{{ n.textColor }};">{{ n.label }}</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:{{ n.subColor }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ n.sub }}</span>
+          </span>
+        </button>
+      </sc-for>
+      <div style="border-top:1px solid oklch(0.93 0.006 258);margin-top:10px;padding:12px 10px 2px;display:flex;flex-direction:column;gap:7px;">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.68 0.015 258);">Status key</span>
+        <div style="display:flex;align-items:center;gap:8px;"><span style="width:12px;height:12px;border-radius:50%;background:oklch(0.45 0.12 255);flex-shrink:0;"></span><span style="font-size:11px;color:oklch(0.45 0.02 258);">Your action needed</span></div>
+        <div style="display:flex;align-items:center;gap:8px;"><span style="width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid oklch(0.7 0.11 70);flex-shrink:0;"></span><span style="font-size:11px;color:oklch(0.45 0.02 258);">Awaiting patient / payer</span></div>
+        <div style="display:flex;align-items:center;gap:8px;"><span style="width:12px;height:12px;border-radius:50%;background:oklch(0.95 0.04 155);border:2px solid oklch(0.78 0.08 155);flex-shrink:0;"></span><span style="font-size:11px;color:oklch(0.45 0.02 258);">No input needed</span></div>
+        <div style="display:flex;align-items:center;gap:8px;"><span style="width:12px;height:12px;border-radius:50%;background:oklch(0.6 0.11 155);color:#fff;display:flex;align-items:center;justify-content:center;font-size:8px;flex-shrink:0;">\u2713</span><span style="font-size:11px;color:oklch(0.45 0.02 258);">Complete / past</span></div>
+      </div>
+      <div style="flex:1;"></div>
+      <div style="border-top:1px solid oklch(0.93 0.006 258);margin-top:8px;padding:12px 10px 4px;">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.68 0.015 258);">Execution log</span>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:9px;">
+          <sc-for list="{{ execLog }}" as="e" hint-placeholder-count="1">
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <span style="width:6px;height:6px;border-radius:50%;background:{{ e.color }};margin-top:5px;flex-shrink:0;"></span>
+              <div style="display:flex;flex-direction:column;">
+                <span style="font-size:11px;line-height:1.3;color:oklch(0.4 0.02 258);">{{ e.text }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:oklch(0.7 0.015 258);">{{ e.time }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ===== MAIN ===== -->
+    <main style="flex:1;overflow:auto;background-image:radial-gradient(oklch(0.9 0.008 255) 0.8px, transparent 0.8px);background-size:22px 22px;background-position:-1px -1px;">
+    <div style="max-width:1080px;margin:0 auto;padding:28px 32px 56px;">
+
+      <!-- ---------- ENCOUNTER ---------- -->
+      <sc-if value="{{ isEncounter }}" hint-placeholder-val="{{ true }}">
+      <div style="animation:prx-in .3s ease both;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;">01 · Encounter capture</div>
+            <h1 style="margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em;">Live encounter, analyzed</h1>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(0.6 0.11 155);border:1px solid oklch(0.85 0.05 155);background:oklch(0.97 0.02 155);border-radius:7px;padding:7px 11px;">
+            <span style="width:7px;height:7px;border-radius:50%;background:oklch(0.6 0.11 155);"></span>
+            Recorded &amp; transcribed · speakers separated
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:18px;align-items:start;">
+          <!-- transcript -->
+          <div style="background:#fff;border:1px solid oklch(0.91 0.008 255);border-radius:12px;overflow:hidden;">
+            <div style="padding:13px 16px;border-bottom:1px solid oklch(0.93 0.006 258);display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:13px;font-weight:600;">Encounter transcript</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.62 0.015 258);">SRC · ambient recording</span>
+            </div>
+            <div style="padding:8px 16px 16px;display:flex;flex-direction:column;gap:3px;max-height:440px;overflow:auto;">
+              <sc-for list="{{ transcript }}" as="t" hint-placeholder-count="6">
+                <div style="display:flex;gap:11px;padding:9px 10px;border-radius:9px;background:{{ t.rowBg }};border:1px solid {{ t.rowBorder }};">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.06em;color:{{ t.tagColor }};flex-shrink:0;width:34px;padding-top:1px;">{{ t.tag }}</span>
+                  <span style="font-size:13px;line-height:1.5;color:oklch(0.34 0.02 258);">{{ t.text }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <!-- note + gap -->
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div style="background:#fff;border:1px solid oklch(0.91 0.008 255);border-radius:12px;overflow:hidden;">
+              <div style="padding:13px 16px;border-bottom:1px solid oklch(0.93 0.006 258);display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:13px;font-weight:600;">Clinical note · payer-visible</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.62 0.015 258);">FHIR</span>
+              </div>
+              <div style="padding:14px 16px;font-size:13px;line-height:1.55;color:oklch(0.38 0.02 258);">
+                <span style="font-weight:600;color:oklch(0.3 0.03 258);">Chronic low back pain.</span> Mechanical, muscular pattern without red flags, aggravated by prolonged sitting; exam without neurologic deficit. Ibuprofen 400 mg oral tablet prescribed; take with food as needed for flares. Activity counseling: hourly breaks from sitting, daily walking, hip-hinge lifting mechanics. Reassess at 4-week follow-up.
+              </div>
+            </div>
+
+            <div style="background:oklch(0.98 0.02 250);border:1px solid oklch(0.85 0.05 250);border-radius:12px;padding:16px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.45 0.12 255);">Gap detected</span>
+              </div>
+              <p style="margin:0 0 12px;font-size:13px;line-height:1.55;color:oklch(0.34 0.03 258);">The note records prior ibuprofen use with good effect — but not how long the trial ran or why it stopped. The conversation has it: <strong style="font-weight:600;">“ibuprofen for a while, which worked, but the bottle ran out months ago.”</strong></p>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(0.5 0.05 258);background:#fff;border:1px solid oklch(0.9 0.02 250);border-radius:8px;padding:9px 11px;line-height:1.6;">
+                iron_rule: <span style="color:oklch(0.45 0.12 255);font-weight:600;">unknown&nbsp;≠&nbsp;no</span><br>
+                action: transcript may inform the record, <span style="color:oklch(0.45 0.12 255);">but cannot modify it</span>
+              </div>
+              <button onClick="{{ goDecision }}" style="margin-top:14px;width:100%;padding:11px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">Roll out next best action →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ---------- WORLD MODEL ---------- -->
+      <sc-if value="{{ isWorld }}" hint-placeholder-val="{{ true }}">
+      <div style="animation:prx-in .3s ease both;">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;">
+          <div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;">02 · World model</div>
+            <h1 style="margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em;">Case state</h1>
+            <p style="margin:6px 0 0;font-size:13px;color:oklch(0.55 0.02 258);max-width:560px;">Five layers of state, continuously refined from every observation. Each fact is bound to its source.</p>
+          </div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.6 0.015 258);text-align:right;line-height:1.7;">
+            <div>state_version&nbsp;·&nbsp;{{ stateVersion }}</div>
+            <div>last_event&nbsp;·&nbsp;{{ lastEvent }}</div>
+          </div>
+        </div>
+
+        <div style="background:#fff;border:1px solid oklch(0.91 0.008 255);border-radius:14px;overflow:hidden;">
+          <sc-for list="{{ layers }}" as="L" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:190px 1fr;border-top:1px solid {{ L.sep }};">
+              <div style="padding:20px 20px;background:oklch(0.985 0.004 255);border-right:1px solid oklch(0.93 0.006 258);display:flex;flex-direction:column;gap:5px;">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.14em;color:oklch(0.55 0.13 250);">{{ L.idx }}</span>
+                <span style="font-size:14px;font-weight:600;">{{ L.title }}</span>
+                <span style="font-size:11px;color:oklch(0.6 0.02 258);line-height:1.4;">{{ L.desc }}</span>
+              </div>
+              <div style="padding:16px 20px;display:flex;flex-direction:column;gap:9px;">
+                <sc-for list="{{ L.rows }}" as="r" hint-placeholder-count="2">
+                  <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(0.62 0.015 258);width:210px;flex-shrink:0;">{{ r.k }}</span>
+                    <span style="font-size:13px;color:oklch(0.34 0.02 258);flex:1;line-height:1.4;">{{ r.v }}</span>
+                    <sc-if value="{{ r.chip }}" hint-placeholder-val="">
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.04em;padding:3px 9px;border-radius:20px;background:{{ r.chipBg }};color:{{ r.chipColor }};border:1px solid {{ r.chipBorder }};white-space:nowrap;flex-shrink:0;">{{ r.chip }}</span>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="margin-top:18px;background:linear-gradient(135deg, oklch(0.45 0.12 255), oklch(0.5 0.1 235));border-radius:14px;padding:20px 22px;display:flex;align-items:center;gap:20px;color:#fff;position:relative;overflow:hidden;">
+          <div style="position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,0.12) 0.8px,transparent 0.8px);background-size:16px 16px;opacity:0.5;"></div>
+          <div style="position:relative;flex:1;">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;opacity:0.8;margin-bottom:6px;">Recommended next action</div>
+            <div style="font-size:18px;font-weight:600;letter-spacing:-0.01em;">{{ recTitle }}</div>
+            <div style="font-size:13px;opacity:0.85;margin-top:4px;">{{ recWhy }}</div>
+          </div>
+          <button onClick="{{ goDecision }}" style="position:relative;padding:12px 20px;border-radius:10px;border:none;background:#fff;color:oklch(0.42 0.12 255);font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">See the rollout →</button>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ---------- DECISION / ROLLOUT ---------- -->
+      <sc-if value="{{ isDecision }}" hint-placeholder-val="{{ true }}">
+      <div style="animation:prx-in .3s ease both;">
+        <div style="margin-bottom:20px;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;">03 · Decision engine</div>
+          <h1 style="margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em;">Roll out · judge · decide · execute</h1>
+          <p style="margin:6px 0 0;font-size:13px;color:oklch(0.55 0.02 258);max-width:640px;">From the current state, Praxess simulates candidate actions, projects each resulting state and payer outcome, scores them by expected value, and commits the highest-value action to the execution layer.</p>
+        </div>
+
+        <div style="display:flex;align-items:stretch;gap:14px;margin-bottom:8px;">
+          <div style="flex-shrink:0;width:150px;background:oklch(0.985 0.004 255);border:1px solid oklch(0.91 0.008 255);border-radius:12px;padding:16px;display:flex;flex-direction:column;justify-content:center;gap:8px;">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);">Current state</span>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(0.35 0.02 258);line-height:1.7;">
+              readiness&nbsp;<span style="color:{{ readinessColor }};font-weight:600;">{{ readinessPct }}%</span><br>
+              open_criteria&nbsp;<span style="font-weight:600;">{{ openCount }}</span>
+            </div>
+            <div style="height:1px;background:oklch(0.92 0.006 258);margin:2px 0;"></div>
+            <span style="font-size:11px;color:oklch(0.6 0.02 258);line-height:1.4;">Simulating {{ candCount }} candidate actions…</span>
+          </div>
+
+          <div style="flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+            <sc-for list="{{ candidates }}" as="a" hint-placeholder-count="3">
+              <div style="position:relative;background:#fff;border:1.5px solid {{ a.cardBorder }};border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:{{ a.cardShadow }};">
+                <sc-if value="{{ a.recommended }}" hint-placeholder-val="">
+                  <span style="position:absolute;top:-9px;left:14px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.1em;background:oklch(0.45 0.12 255);color:#fff;padding:3px 8px;border-radius:20px;display:flex;align-items:center;gap:5px;"><span style="width:5px;height:5px;border-radius:50%;background:#fff;animation:prx-pulse 1.6s infinite;"></span>ARGMAX · SELECTED</span>
+                </sc-if>
+                <div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.62 0.015 258);margin-bottom:5px;">{{ a.kind }}</div>
+                  <div style="font-size:14px;font-weight:600;line-height:1.3;">{{ a.title }}</div>
+                </div>
+                <div style="font-size:12px;color:oklch(0.5 0.02 258);line-height:1.5;flex:1;">{{ a.desc }}</div>
+                <div style="border-top:1px dashed oklch(0.9 0.008 255);padding-top:11px;display:flex;flex-direction:column;gap:8px;">
+                  <div style="display:flex;align-items:center;gap:7px;">
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;color:oklch(0.65 0.015 258);width:56px;flex-shrink:0;">Δ STATE</span>
+                    <span style="font-size:11px;color:oklch(0.4 0.02 258);">{{ a.delta }}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:7px;">
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;color:oklch(0.65 0.015 258);width:56px;flex-shrink:0;">PROJ</span>
+                    <span style="font-size:11px;font-weight:500;color:{{ a.projColor }};background:{{ a.projBg }};border-radius:5px;padding:2px 7px;">{{ a.proj }}</span>
+                  </div>
+                </div>
+                <div>
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;color:oklch(0.65 0.015 258);">VALUE SCORE</span>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:{{ a.scoreColor }};">{{ a.scoreText }}</span>
+                  </div>
+                  <div style="height:5px;border-radius:4px;background:oklch(0.94 0.006 258);overflow:hidden;">
+                    <div style="height:100%;border-radius:4px;background:{{ a.scoreColor }};width:{{ a.scorePct }}%;"></div>
+                  </div>
+                </div>
+                <sc-if value="{{ a.recommended }}" hint-placeholder-val="">
+                  <button onClick="{{ a.onExecute }}" style="margin-top:2px;padding:10px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">⚡ Execute · {{ a.cta }}</button>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <p style="font-size:11px;color:oklch(0.65 0.015 258);font-family:'IBM Plex Mono',monospace;margin-top:14px;">Execution is gated by human approval. Praxess proposes; the clinician commits.</p>
+      </div>
+      </sc-if>
+
+      <!-- ---------- ADDENDUM ---------- -->
+      <sc-if value="{{ isAddendum }}" hint-placeholder-val="{{ true }}">
+      <div style="animation:prx-in .3s ease both;max-width:760px;">
+        <div style="margin-bottom:20px;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;">04 · Clinician-approved addendum</div>
+          <h1 style="margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em;">Draft note addendum</h1>
+        </div>
+
+        <div style="background:#fff;border:1px solid oklch(0.91 0.008 255);border-radius:12px;overflow:hidden;">
+          <div style="padding:12px 18px;border-bottom:1px solid oklch(0.93 0.006 258);display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:13px;font-weight:600;">Proposed addendum</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:{{ addStatusColor }};background:{{ addStatusBg }};border:1px solid {{ addStatusBorder }};border-radius:20px;padding:3px 10px;">{{ addStatus }}</span>
+          </div>
+          <div style="padding:20px 18px;">
+            <p style="margin:0;font-size:15px;line-height:1.7;color:oklch(0.3 0.02 258);border-left:3px solid oklch(0.55 0.13 250);padding-left:16px;">During the encounter, the patient <span style="background:oklch(0.95 0.03 250);border-radius:3px;padding:0 3px;">reported</span> using ibuprofen with good effect until the supply ran out several months ago, alongside walking and hot showers for symptom relief. The exact duration of this self-directed conservative care was not established during this visit.</p>
+
+            <div style="margin-top:18px;display:flex;flex-direction:column;gap:8px;">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);">Provenance</span>
+              <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                <sc-for list="{{ provenance }}" as="p" hint-placeholder-count="3">
+                  <span style="display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(0.45 0.05 255);background:oklch(0.97 0.01 250);border:1px solid oklch(0.9 0.015 250);border-radius:7px;padding:5px 10px;"><span style="width:6px;height:6px;border-radius:2px;background:oklch(0.55 0.13 250);"></span>{{ p }}</span>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="margin-top:18px;background:oklch(0.98 0.02 75);border:1px solid oklch(0.88 0.05 75);border-radius:9px;padding:12px 14px;font-size:12px;line-height:1.55;color:oklch(0.42 0.04 60);">
+              <strong style="font-weight:600;">Safety guard:</strong> patient-reported context is preserved as patient-reported. It is not converted into a clinician-observed finding, and unresolved items (treatment duration) are flagged, not assumed.
+            </div>
+          </div>
+
+          <div style="padding:14px 18px;border-top:1px solid oklch(0.93 0.006 258);display:flex;gap:10px;background:oklch(0.985 0.004 255);">
+            <sc-if value="{{ addendumPending }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ approveAddendum }}" style="flex:1;padding:11px;border-radius:9px;border:none;background:oklch(0.55 0.11 155);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">✓ Approve &amp; add to record</button>
+              <button style="padding:11px 18px;border-radius:9px;border:1px solid oklch(0.88 0.01 255);background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:oklch(0.4 0.02 258);cursor:pointer;">Edit</button>
+              <button style="padding:11px 18px;border-radius:9px;border:1px solid oklch(0.88 0.01 255);background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:oklch(0.55 0.02 258);cursor:pointer;">Dismiss</button>
+            </sc-if>
+            <sc-if value="{{ addendumDone }}" hint-placeholder-val="">
+              <div style="flex:1;display:flex;align-items:center;gap:10px;font-size:13px;color:oklch(0.5 0.09 155);font-weight:500;"><span style="width:20px;height:20px;border-radius:50%;background:oklch(0.55 0.11 155);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;">✓</span>Clinician-reviewed · now payer-visible in the packet</div>
+              <button onClick="{{ goDecision }}" style="padding:11px 18px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">Next action →</button>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ---------- PATIENT ---------- -->
+      <sc-if value="{{ isPatient }}" hint-placeholder-val="{{ true }}">
+      <div style="animation:prx-in .3s ease both;">
+        <div style="margin-bottom:20px;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;">05 · Targeted patient question</div>
+          <h1 style="margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em;">Smallest action likely to change the case</h1>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:22px;align-items:start;">
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div style="background:#fff;border:1px solid oklch(0.91 0.008 255);border-radius:12px;padding:18px;">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);">Generated question · targets C5</span>
+              <p style="margin:10px 0 0;font-size:16px;line-height:1.5;font-weight:500;color:oklch(0.3 0.02 258);">"Have you done any physical therapy for your back — and if so, roughly where and for how long?"</p>
+              <div style="margin-top:14px;display:flex;align-items:center;gap:8px;font-size:12px;color:oklch(0.55 0.02 258);">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;background:oklch(0.97 0.01 250);border:1px solid oklch(0.9 0.015 250);border-radius:6px;padding:3px 8px;">secure link</span>
+                <span>No policy interpretation asked of the patient. One question, one tap.</span>
+              </div>
+            </div>
+
+            <sc-if value="{{ patientAnswered }}" hint-placeholder-val="">
+              <div style="background:#fff;border:1px solid oklch(0.85 0.05 155);border-radius:12px;padding:18px;animation:prx-in .3s ease both;">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.5 0.09 155);">Response received</span>
+                <p style="margin:10px 0 0;font-size:15px;line-height:1.6;color:oklch(0.32 0.02 258);">"I did about eight weeks of physical therapy at <strong style="font-weight:600;">Metro Physical Therapy</strong> earlier this year, from January through March."</p>
+                <div style="margin-top:16px;background:oklch(0.985 0.004 255);border:1px solid oklch(0.93 0.006 258);border-radius:9px;padding:12px 14px;">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.7;color:oklch(0.45 0.02 258);">
+                    source: <span style="color:oklch(0.55 0.13 250);">patient</span> · verification: <span style="color:oklch(0.65 0.09 70);">patient-reported</span><br>
+                    → does <span style="font-weight:600;">not</span> auto-satisfy C5 · next action re-planned:
+                  </div>
+                  <div style="margin-top:8px;font-size:13px;font-weight:600;color:oklch(0.3 0.02 258);">Request records from Metro Physical Therapy.</div>
+                </div>
+                <button onClick="{{ goDecision }}" style="margin-top:14px;padding:10px 16px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">See re-planned action →</button>
+              </div>
+            </sc-if>
+          </div>
+
+          <!-- patient phone -->
+          <div style="justify-self:center;width:280px;background:oklch(0.22 0.02 258);border-radius:34px;padding:10px;box-shadow:0 20px 50px -20px oklch(0.4 0.05 258 / 0.5);">
+            <div style="background:oklch(0.985 0.005 245);border-radius:26px;overflow:hidden;height:520px;display:flex;flex-direction:column;">
+              <div style="padding:14px 18px 12px;background:oklch(0.45 0.12 255);color:#fff;">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.1em;opacity:0.8;">PRAXESS · SECURE</div>
+                <div style="font-size:14px;font-weight:600;margin-top:3px;">Quick question from your care team</div>
+              </div>
+              <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:12px;overflow:auto;">
+                <div style="font-size:13px;line-height:1.5;color:oklch(0.34 0.02 258);">Have you done any physical therapy for your back? Where, and for about how long?</div>
+                <sc-if value="{{ patientAnswered }}" hint-placeholder-val="">
+                  <div style="align-self:flex-end;max-width:85%;background:oklch(0.45 0.12 255);color:#fff;border-radius:14px 14px 4px 14px;padding:10px 13px;font-size:13px;line-height:1.5;animation:prx-in .3s ease both;">~8 weeks at Metro Physical Therapy, Jan–Mar.</div>
+                  <div style="align-self:center;font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.6 0.11 155);">✓ sent to care team</div>
+                </sc-if>
+                <sc-if value="{{ patientPending }}" hint-placeholder-val="{{ true }}">
+                  <div style="flex:1;"></div>
+                  <div style="display:flex;flex-direction:column;gap:8px;">
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.6 0.02 258);text-align:center;">demo · patient replies</span>
+                    <button onClick="{{ patientRespond }}" style="padding:12px;border-radius:12px;border:none;background:oklch(0.3 0.03 258);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">Simulate patient reply</button>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ---------- RECORD REQUEST (inline on decision execute) ---------- -->
+      <sc-if value="{{ isRecord }}" hint-placeholder-val="">
+      <div style="animation:prx-in .3s ease both;max-width:640px;">
+        <div style="margin-bottom:20px;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;">05b · External record request</div>
+          <h1 style="margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em;">Verify the patient-reported PT</h1>
+        </div>
+        <div style="background:#fff;border:1px solid oklch(0.91 0.008 255);border-radius:12px;padding:20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid oklch(0.93 0.006 258);">
+            <div>
+              <div style="font-size:14px;font-weight:600;">Metro Physical Therapy</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(0.6 0.02 258);margin-top:2px;">records request · course of PT, Jan–Mar</div>
+            </div>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:{{ recStatusColor }};background:{{ recStatusBg }};border:1px solid {{ recStatusBorder }};border-radius:20px;padding:4px 11px;">{{ recStatusLabel }}</span>
+          </div>
+          <div style="padding-top:16px;">
+            <sc-if value="{{ recordPending }}" hint-placeholder-val="">
+              <p style="margin:0 0 14px;font-size:13px;line-height:1.6;color:oklch(0.45 0.02 258);">A targeted release request has been sent. When the record returns, C5 upgrades from <span style="font-family:'IBM Plex Mono',monospace;color:oklch(0.65 0.09 70);">patient-reported</span> to <span style="font-family:'IBM Plex Mono',monospace;color:oklch(0.55 0.11 155);">documented · verified</span>.</p>
+              <button onClick="{{ receiveRecord }}" style="padding:11px 18px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">Simulate record returned</button>
+            </sc-if>
+            <sc-if value="{{ recordDone }}" hint-placeholder-val="">
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:oklch(0.5 0.09 155);font-weight:500;margin-bottom:14px;"><span style="width:20px;height:20px;border-radius:50%;background:oklch(0.55 0.11 155);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;">✓</span>PT summary received · 8 sessions verified · C5 satisfied</div>
+              <button onClick="{{ generateAndGo }}" style="padding:11px 18px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">Generate PA packet →</button>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ---------- PACKET ---------- -->
+      <sc-if value="{{ isPacket }}" hint-placeholder-val="">
+      <div style="animation:prx-in .3s ease both;">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;">
+          <div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;">06 · Authorization packet</div>
+            <h1 style="margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em;">Provenance-backed PA packet</h1>
+          </div>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(0.45 0.12 255);background:oklch(0.96 0.02 250);border:1px solid oklch(0.87 0.04 250);border-radius:8px;padding:7px 12px;">STATUS · REVIEW-READY DRAFT</span>
+        </div>
+
+        <div style="background:#fff;border:1px solid oklch(0.91 0.008 255);border-radius:12px;overflow:hidden;">
+          <div style="padding:18px 22px;border-bottom:1px solid oklch(0.93 0.006 258);display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.62 0.015 258);text-transform:uppercase;letter-spacing:0.08em;">Requested service</div><div style="font-size:14px;font-weight:600;margin-top:4px;">MRI lumbar spine w/o contrast · 72148</div></div>
+            <div><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.62 0.015 258);text-transform:uppercase;letter-spacing:0.08em;">Payer</div><div style="font-size:14px;font-weight:600;margin-top:4px;">Meridian Health Plan · Commercial</div></div>
+          </div>
+
+          <div style="padding:10px 22px 6px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);">Criteria checklist · all supported</div>
+          <sc-for list="{{ criteria }}" as="c" hint-placeholder-count="5">
+            <div style="display:flex;align-items:center;gap:14px;padding:12px 22px;border-top:1px solid oklch(0.95 0.004 258);">
+              <span style="width:22px;height:22px;border-radius:6px;background:oklch(0.95 0.03 155);color:oklch(0.5 0.1 155);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;">✓</span>
+              <div style="flex:1;">
+                <div style="font-size:13px;font-weight:500;color:oklch(0.32 0.02 258);">{{ c.label }}</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.6 0.015 258);margin-top:2px;">{{ c.packetSource }}</div>
+              </div>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;background:{{ c.chipBg }};color:{{ c.chipColor }};border:1px solid {{ c.chipBorder }};white-space:nowrap;">{{ c.packetTag }}</span>
+            </div>
+          </sc-for>
+
+          <div style="padding:16px 22px;border-top:1px solid oklch(0.93 0.006 258);background:oklch(0.985 0.004 255);">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);margin-bottom:8px;">Medical-necessity summary</div>
+            <p style="margin:0;font-size:13px;line-height:1.65;color:oklch(0.38 0.02 258);">Chronic mechanical low-back pain &gt;6 months with documented failure of a structured conservative-therapy course — self-directed care (clinician-reviewed addendum) and a verified 8-session physical-therapy program — without neurologic deficit or red flags. Advanced imaging is indicated to evaluate for structural etiology. Every assertion below links to transcript, note, FHIR, patient response, or external record.</p>
+          </div>
+
+          <div style="padding:16px 22px;border-top:1px solid oklch(0.93 0.006 258);display:flex;gap:10px;align-items:center;">
+            <span style="flex:1;font-size:12px;color:oklch(0.55 0.02 258);">Draft — the clinician reviews before submission. Praxess does not auto-submit.</span>
+            <button onClick="{{ submitPacket }}" style="padding:12px 22px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">Submit to Meridian →</button>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ---------- LIFECYCLE ---------- -->
+      <sc-if value="{{ isLifecycle }}" hint-placeholder-val="">
+      <div style="animation:prx-in .3s ease both;">
+        <div style="margin-bottom:22px;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;">07 · Submission &amp; appeals</div>
+          <h1 style="margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em;">The loop keeps running after submission</h1>
+          <p style="margin:6px 0 0;font-size:13px;color:oklch(0.55 0.02 258);max-width:600px;">A payer response is just a new observation. Praxess updates the state and re-plans — approval, more-info, or appeal.</p>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;margin-bottom:24px;">
+          <sc-for list="{{ lifecycle }}" as="s" hint-placeholder-count="6">
+            <div style="display:flex;align-items:center;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:7px;width:96px;">
+                <span style="width:16px;height:16px;border-radius:50%;background:{{ s.dot }};border:2px solid {{ s.ring }};"></span>
+                <span style="font-size:11px;text-align:center;line-height:1.3;color:{{ s.textColor }};font-weight:{{ s.weight }};">{{ s.label }}</span>
+              </div>
+              <sc-if value="{{ s.connector }}" hint-placeholder-val="">
+                <span style="width:26px;height:2px;background:{{ s.lineColor }};margin-bottom:22px;"></span>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;">
+          <div style="background:#fff;border:1px solid oklch(0.91 0.008 255);border-radius:12px;padding:18px;">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);">Simulate payer response</span>
+            <div style="display:flex;flex-direction:column;gap:9px;margin-top:12px;">
+              <button onClick="{{ respApprove }}" style="text-align:left;padding:12px 14px;border-radius:9px;border:1px solid oklch(0.85 0.05 155);background:oklch(0.98 0.02 155);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:oklch(0.4 0.06 155);">✓ Approved</button>
+              <button onClick="{{ respMore }}" style="text-align:left;padding:12px 14px;border-radius:9px;border:1px solid oklch(0.86 0.05 75);background:oklch(0.98 0.02 75);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:oklch(0.45 0.06 60);">◐ More information requested</button>
+              <button onClick="{{ respDeny }}" style="text-align:left;padding:12px 14px;border-radius:9px;border:1px solid oklch(0.86 0.06 25);background:oklch(0.98 0.02 25);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:oklch(0.5 0.08 25);">✕ Denied</button>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid {{ obsBorder }};border-radius:12px;padding:18px;min-height:180px;">
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);">Observe → update → re-plan</span>
+            <sc-if value="{{ hasResponse }}" hint-placeholder-val="{{ true }}">
+              <div style="margin-top:12px;animation:prx-in .3s ease both;">
+                <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;">
+                  <span style="width:24px;height:24px;border-radius:7px;background:{{ obsBg }};color:{{ obsColor }};display:flex;align-items:center;justify-content:center;font-size:13px;">{{ obsIcon }}</span>
+                  <span style="font-size:15px;font-weight:600;color:{{ obsColor }};">{{ obsTitle }}</span>
+                </div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.8;color:oklch(0.45 0.02 258);background:oklch(0.985 0.004 255);border:1px solid oklch(0.93 0.006 258);border-radius:9px;padding:12px 14px;">{{ obsDetailA }}<br><span style="color:{{ obsColor }};">{{ obsDetailB }}</span></div>
+                <div style="margin-top:12px;font-size:13px;color:oklch(0.35 0.02 258);"><strong style="font-weight:600;">Re-planned action:</strong> {{ obsAction }}</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ noResponse }}" hint-placeholder-val="">
+              <div style="margin-top:20px;font-size:13px;color:oklch(0.62 0.015 258);text-align:center;line-height:1.6;">Waiting on payer.<br>Choose a response to see Praxess re-plan.</div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+    </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    screen: 'encounter',
+    steps: {
+      addendumApproved: false,
+      patientAsked: false,
+      patientAnswered: false,
+      recordRequested: false,
+      recordReceived: false,
+      packetGenerated: false,
+      submitted: false,
+      payerResponse: null,
+    },
+    engine: 'connecting',      // live | offline | connecting — honest indicator of backend link
+    engineCriteria: null,      // criterion_id -> status from /api/analyze_transcript
+  };
+
+  set(patch) { this.setState(s => ({ steps: { ...s.steps, ...patch } })); }
+  go(screen) { this.setState({ screen }); }
+
+  // ---- live engine bridge (FastAPI backend via vite /api proxy) ----
+  api(path, body) {
+    return fetch('/api/' + path, {
+      method: body ? 'POST' : 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    }).then(r => { if (!r.ok) throw new Error(path + ' ' + r.status); return r.json(); });
+  }
+
+  boot() {
+    if (this._booted) return; this._booted = true;
+    const ENC = '1ba8eeb9-bc93-7129-4390-0d2ddd560616::1ba8eeb9-bc93-7129-2e7d-8c427e72b964';
+    const body = { encounter_id: ENC, session_id: 'design', live_mine: false };
+    this.api('analyze', body)
+      .catch(() => this.api('analyze_transcript', body)) // route name differs between backend revisions
+      .then(res => {
+        const st = res.state || res;
+        const by = {};
+        (st.criteria || []).forEach(c => { by[c.id] = c.status; });
+        this.setState({ engine: 'live', engineCriteria: by });
+      })
+      .catch(() => this.setState({ engine: 'offline' }));
+  }
+
+  decide(criterionId, decision, answer) {
+    if (this.state.engine !== 'live') return;
+    this.api('decide', { session_id: 'design', criterion_id: criterionId, decision: decision, answer: answer })
+      .catch(() => {}); // criterion may not exist backend-side yet; UI state machine is source of truth for the walkthrough
+  }
+
+  mapStatus(s) {
+    return {
+      documented: 'documented', verified: 'verified',
+      conversation_enriched: 'partial', partial: 'partial',
+      patient_reported: 'patient', patient_reported_unverified: 'patient',
+      unknown: 'unknown',
+    }[s] || null;
+  }
+
+  liveStatus(id, fallback) {
+    const by = this.state.engineCriteria || {};
+    const m = by[id] != null ? this.mapStatus(by[id]) : null;
+    return m || fallback;
+  }
+
+  // ---- criteria + status ----
+  statusMeta(k) {
+    const M = {
+      documented: { label: 'Documented', color: 'oklch(0.45 0.1 155)', bg: 'oklch(0.96 0.03 155)', border: 'oklch(0.86 0.05 155)', w: 1 },
+      verified:   { label: 'Verified',   color: 'oklch(0.45 0.1 155)', bg: 'oklch(0.96 0.03 155)', border: 'oklch(0.86 0.05 155)', w: 1 },
+      partial:    { label: 'Partial',    color: 'oklch(0.5 0.1 300)',  bg: 'oklch(0.96 0.03 300)', border: 'oklch(0.87 0.04 300)', w: 0.5 },
+      patient:    { label: 'Patient-reported', color: 'oklch(0.55 0.09 65)', bg: 'oklch(0.97 0.04 75)', border: 'oklch(0.88 0.05 75)', w: 0.6 },
+      unknown:    { label: 'Unknown',    color: 'oklch(0.55 0.015 258)', bg: 'oklch(0.955 0.004 258)', border: 'oklch(0.9 0.006 258)', w: 0 },
+    };
+    return M[k] || M.unknown;
+  }
+
+  criteriaRaw() {
+    const s = this.state.steps;
+    // Post-action step flags win; otherwise the live engine's analyzed status; design default last.
+    const c4 = s.addendumApproved ? 'documented' : this.liveStatus('conservative_care', 'partial');
+    let c5 = this.liveStatus('physical_therapy', 'unknown');
+    if (s.recordReceived) c5 = 'verified';
+    else if (s.patientAnswered) c5 = 'patient';
+    return [
+      { id: 'C1', label: 'Symptom duration \u2265 6 weeks', status: this.liveStatus('symptom_duration', 'documented'), src: 'Clinical note \u00b7 FHIR' },
+      { id: 'C2', label: 'Red-flag pathology absent', status: this.liveStatus('no_red_flags', 'documented'), src: 'Clinical note' },
+      { id: 'C3', label: 'Documented neurologic examination', status: this.liveStatus('no_red_flags', 'documented'), src: 'Clinical note' },
+      { id: 'C4', label: '\u2265 6 wks self-directed conservative care', status: c4, src: s.addendumApproved ? 'Approved addendum \u00b7 transcript' : 'Transcript (conversation-enriched)' },
+      { id: 'C5', label: 'Completed course of physical therapy', status: c5, src: s.recordReceived ? 'External record \u00b7 Metro PT' : (s.patientAnswered ? 'Patient response' : 'Not yet established') },
+    ];
+  }
+
+  readiness() {
+    const cr = this.criteriaRaw();
+    const sum = cr.reduce((a, c) => a + this.statusMeta(c.status).w, 0);
+    return Math.round((sum / cr.length) * 100);
+  }
+
+  phase() {
+    const s = this.state.steps;
+    if (!s.addendumApproved) return 'addendum';
+    if (!s.patientAnswered) return 'patient';
+    if (!s.recordReceived) return 'record';
+    if (!s.packetGenerated) return 'packet';
+    if (!s.submitted) return 'submit';
+    return 'track';
+  }
+
+  candidates() {
+    const p = this.phase();
+    const rp = this.readiness();
+    const mk = (o) => o;
+    const good = { c: 'oklch(0.45 0.1 155)', b: 'oklch(0.96 0.03 155)' };
+    const warn = { c: 'oklch(0.5 0.08 60)', b: 'oklch(0.97 0.04 75)' };
+    const bad = { c: 'oklch(0.5 0.11 25)', b: 'oklch(0.97 0.03 25)' };
+    const sets = {
+      addendum: [
+        mk({ kind: 'draft \u00b7 in-house', title: 'Draft clinical-note addendum', desc: 'Capture patient-reported conservative care from the transcript, clinician-approved, into the record.', delta: 'C4 partial \u2192 documented', proj: 'Readiness ' + rp + '% \u2192 80%', tone: good, score: 0.86, cta: 'Open addendum', exec: () => this.go('addendum') }),
+        mk({ kind: 'ask \u00b7 patient', title: 'Ask patient about conservative care', desc: 'Patient cannot attest to clinical framing; yields unverified data before the note gap is closed.', delta: 'starts C5, C4 still partial', proj: 'Readiness \u2192 ~76% (unverified)', tone: warn, score: 0.58, cta: '', exec: () => {} }),
+        mk({ kind: 'submit \u00b7 payer', title: 'Submit packet now', desc: 'Two criteria unresolved. Rollout projects a denial for insufficient conservative-therapy evidence.', delta: 'C4 partial, C5 unknown', proj: 'Denied \u2014 est. 82%', tone: bad, score: 0.11, cta: '', exec: () => {} }),
+      ],
+      patient: [
+        mk({ kind: 'ask \u00b7 patient', title: 'Ask patient: PT history + location', desc: 'Smallest targeted question that can unlock C5. Secure single-tap link, no policy interpretation asked.', delta: 'unlocks C5 verification path', proj: 'Readiness \u2192 92% \u2192 100%', tone: good, score: 0.88, cta: 'Send question', exec: () => { this.set({ patientAsked: true }); this.go('patient'); } }),
+        mk({ kind: 'ask \u00b7 clinician', title: 'Ask clinician to confirm PT', desc: 'Clinician cannot attest to external PT they did not supervise. Low expected yield.', delta: 'no state change likely', proj: 'Readiness \u2192 ~80%', tone: warn, score: 0.4, cta: '', exec: () => {} }),
+        mk({ kind: 'submit \u00b7 payer', title: 'Submit with current evidence', desc: 'PT entirely unknown. Rollout projects a request for more information.', delta: 'C5 unknown', proj: 'More info \u2014 est. 74%', tone: warn, score: 0.3, cta: '', exec: () => {} }),
+      ],
+      record: [
+        mk({ kind: 'request \u00b7 record', title: 'Request records from Metro PT', desc: 'Convert patient-reported PT into verified, provenance-linked documentation.', delta: 'C5 patient-reported \u2192 verified', proj: 'Readiness ' + rp + '% \u2192 100%', tone: good, score: 0.91, cta: 'Request record', exec: () => { this.set({ recordRequested: true }); this.go('record'); } }),
+        mk({ kind: 'ask \u00b7 patient', title: 'Ask patient to upload PT summary', desc: 'Faster, but lower provenance and higher payer-scrutiny risk than a direct release.', delta: 'C5 \u2192 patient-uploaded', proj: 'Readiness \u2192 ~96%', tone: warn, score: 0.62, cta: '', exec: () => {} }),
+        mk({ kind: 'submit \u00b7 payer', title: 'Submit with patient-reported PT', desc: 'Unverified PT often triggers a documentation request. Rollout projects more-info.', delta: 'C5 patient-reported', proj: 'More info \u2014 est. 63%', tone: warn, score: 0.44, cta: '', exec: () => {} }),
+      ],
+      packet: [
+        mk({ kind: 'generate \u00b7 packet', title: 'Generate provenance-backed packet', desc: 'All five criteria supported. Assemble a review-ready draft with source links on every assertion.', delta: 'produces review-ready draft', proj: 'All 5 criteria supported', tone: good, score: 0.95, cta: 'Generate packet', exec: () => { this.set({ packetGenerated: true }); this.go('packet'); } }),
+        mk({ kind: 'hold', title: 'Hold for further review', desc: 'No open criteria remain; delay adds no value and risks deadline pressure.', delta: 'no change', proj: 'Readiness holds 100%', tone: warn, score: 0.3, cta: '', exec: () => {} }),
+        mk({ kind: 'ask \u00b7 clinician', title: 'Request extra clinical detail', desc: 'Marginal — criteria already met; additional detail unlikely to change the determination.', delta: 'no change', proj: 'Readiness holds 100%', tone: warn, score: 0.25, cta: '', exec: () => {} }),
+      ],
+      submit: [
+        mk({ kind: 'submit \u00b7 payer', title: 'Submit packet to Meridian', desc: 'Fully supported, provenance-linked packet. Rollout projects a favorable determination.', delta: 'case \u2192 submitted', proj: 'Approval \u2014 est. 88%', tone: good, score: 0.93, cta: 'Submit', exec: () => this.go('packet') }),
+        mk({ kind: 'hold', title: 'Hold for clinician sign-off', desc: 'Reasonable, but the packet is already clinician-reviewed and deadline is active.', delta: 'no change', proj: 'no progress', tone: warn, score: 0.35, cta: '', exec: () => {} }),
+        mk({ kind: 'peer-to-peer', title: 'Pre-schedule peer-to-peer', desc: 'Premature before a determination exists. Reserve for a denial branch.', delta: 'no change', proj: 'n/a', tone: warn, score: 0.2, cta: '', exec: () => {} }),
+      ],
+      track: [
+        mk({ kind: 'observe', title: 'Track payer determination', desc: 'Case submitted. Awaiting a payer observation to re-plan against.', delta: 'monitoring', proj: 'Awaiting response', tone: good, score: 0.9, cta: 'Go to tracking', exec: () => this.go('lifecycle') }),
+      ],
+    };
+    const list = sets[p] || sets.track;
+    let best = 0; list.forEach((c, i) => { if (c.score > list[best].score) best = i; });
+    return list.map((c, i) => ({ ...c, recommended: i === best }));
+  }
+
+  stageStatus(id) {
+    const s = this.state.steps;
+    const pr = s.payerResponse;
+    const rp = this.readiness();
+    switch (id) {
+      case 'encounter': return 'done';
+      case 'world': return 'ok';       // lens \u00b7 no input needed
+      case 'decision': return 'ok';    // lens \u00b7 no input needed
+      case 'addendum':
+        if (s.addendumApproved) return 'done';
+        return 'you';                  // clinician must approve
+      case 'patient':
+        if (s.patientAnswered) return 'done';
+        if (s.patientAsked) return 'patient';
+        return s.addendumApproved ? 'you' : 'upcoming';
+      case 'packet':
+        if (s.packetGenerated) return 'done';
+        return rp >= 100 ? 'you' : 'upcoming';
+      case 'lifecycle':
+        if (pr === 'approve') return 'done';
+        if (pr === 'deny') return 'appeal';
+        if (pr === 'more') return 'you';
+        if (s.submitted) return 'payer';
+        return s.packetGenerated ? 'you' : 'upcoming';
+    }
+    return 'upcoming';
+  }
+
+  statusViz(k) {
+    const M = {
+      done:    { bg: 'oklch(0.6 0.11 155)', border: 'oklch(0.6 0.11 155)', glyph: '\u2713', glyphColor: '#fff', dot: '', pulse: false, subColor: 'oklch(0.5 0.08 155)' },
+      you:     { bg: 'oklch(0.45 0.12 255)', border: 'oklch(0.45 0.12 255)', glyph: '', glyphColor: '#fff', dot: '#fff', pulse: true, subColor: 'oklch(0.5 0.1 255)' },
+      patient: { bg: '#fff', border: 'oklch(0.7 0.11 70)', glyph: '', glyphColor: '', dot: 'oklch(0.7 0.11 70)', pulse: true, subColor: 'oklch(0.55 0.09 65)' },
+      payer:   { bg: '#fff', border: 'oklch(0.55 0.13 250)', glyph: '', glyphColor: '', dot: 'oklch(0.55 0.13 250)', pulse: true, subColor: 'oklch(0.5 0.1 255)' },
+      appeal:  { bg: 'oklch(0.57 0.15 25)', border: 'oklch(0.57 0.15 25)', glyph: '!', glyphColor: '#fff', dot: '', pulse: true, subColor: 'oklch(0.55 0.12 25)' },
+      ok:      { bg: 'oklch(0.95 0.04 155)', border: 'oklch(0.78 0.08 155)', glyph: '', glyphColor: '', dot: 'oklch(0.6 0.11 155)', pulse: false, subColor: 'oklch(0.62 0.015 258)' },
+      upcoming:{ bg: 'oklch(0.965 0.006 258)', border: 'oklch(0.9 0.008 255)', glyph: '', glyphColor: 'oklch(0.62 0.02 258)', dot: '', pulse: false, subColor: 'oklch(0.66 0.015 258)' },
+    };
+    return M[k] || M.upcoming;
+  }
+
+  renderVals() {
+    this.boot();
+    const s = this.state.steps;
+    const screen = this.state.screen;
+    const rp = this.readiness();
+    const engine = this.state.engine;
+    const engineLabel = engine === 'live' ? 'ENGINE LIVE' : (engine === 'offline' ? 'DESIGN MODE' : 'CONNECTING…');
+    const engineDot = engine === 'live' ? 'oklch(0.6 0.11 155)' : (engine === 'offline' ? 'oklch(0.7 0.11 70)' : 'oklch(0.75 0.02 258)');
+    const readinessColor = rp >= 100 ? 'oklch(0.55 0.11 155)' : (rp >= 85 ? 'oklch(0.6 0.11 155)' : 'oklch(0.55 0.13 250)');
+    const readinessLabel = rp >= 100 ? 'All criteria supported' : (rp >= 85 ? 'Nearly ready' : 'Evidence gaps open');
+
+    const cr = this.criteriaRaw();
+    const criteria = cr.map(c => {
+      const m = this.statusMeta(c.status);
+      return {
+        id: c.id, label: c.label,
+        chipBg: m.bg, chipColor: m.color, chipBorder: m.border,
+        packetSource: c.src, packetTag: m.label,
+      };
+    });
+
+    // nav
+    const stages = [
+      { id: 'encounter', label: 'Encounter', sub: 'recorded \u00b7 analyzed', doneKey: 'always', marker: '01' },
+      { id: 'world', label: 'World model', sub: 'case state', doneKey: null, marker: '02' },
+      { id: 'decision', label: 'Decision engine', sub: 'roll out \u00b7 decide', doneKey: null, marker: '03' },
+      { id: 'addendum', label: 'Addendum', sub: 'clinician-approved', doneKey: 'addendumApproved', marker: '04' },
+      { id: 'patient', label: 'Patient question', sub: 'targeted \u00b7 secure', doneKey: 'patientAnswered', marker: '05' },
+      { id: 'packet', label: 'PA packet', sub: 'provenance-backed', doneKey: 'packetGenerated', marker: '06' },
+      { id: 'lifecycle', label: 'Submission', sub: 'track \u00b7 appeal', doneKey: 'submitted', marker: '07' },
+    ];
+    const subYou = { addendum: 'review & approve', patient: 'send question', packet: 'review & submit', lifecycle: 'submit packet' };
+    const navItems = stages.map(st => {
+      const active = screen === st.id || (st.id === 'decision' && screen === 'record');
+      const status = this.stageStatus(st.id);
+      const v = this.statusViz(status);
+      let sub = st.sub;
+      if (status === 'you') { sub = subYou[st.id] || 'needs your action'; if (st.id === 'lifecycle' && s.payerResponse === 'more') sub = 'answer info request'; }
+      else if (status === 'patient') sub = 'waiting on patient';
+      else if (status === 'payer') sub = 'waiting on payer';
+      else if (status === 'appeal') sub = 'appeal needed';
+      return {
+        label: st.label, sub,
+        onClick: () => this.go(st.id),
+        glyph: status === 'upcoming' ? st.marker : v.glyph,
+        markBg: v.bg, markBorder: active ? 'oklch(0.45 0.12 255)' : v.border, glyphColor: v.glyphColor,
+        dotColor: v.dot, dotAnim: v.pulse ? 'animation:prx-pulse 1.6s infinite;' : '',
+        bg: active ? 'oklch(0.96 0.02 250)' : 'transparent',
+        border: active ? 'oklch(0.88 0.04 250)' : 'transparent',
+        textColor: active ? 'oklch(0.35 0.06 255)' : (status === 'upcoming' ? 'oklch(0.6 0.02 258)' : 'oklch(0.4 0.02 258)'),
+        weight: active ? 600 : 500,
+        subColor: v.subColor,
+      };
+    });
+
+    // exec log
+    const log = [{ text: 'Encounter recorded, transcribed, analyzed against payer criteria', time: '09:14', color: 'oklch(0.55 0.13 250)' }];
+    if (s.addendumApproved) log.push({ text: 'Addendum approved \u2192 C4 documented (clinician-reviewed)', time: '09:21', color: 'oklch(0.55 0.11 155)' });
+    if (s.patientAnswered) log.push({ text: 'Patient response received \u2192 C5 patient-reported', time: '11:03', color: 'oklch(0.65 0.09 70)' });
+    if (s.recordReceived) log.push({ text: 'Metro PT record verified \u2192 C5 documented', time: '14:47', color: 'oklch(0.55 0.11 155)' });
+    if (s.packetGenerated) log.push({ text: 'Provenance-backed packet generated \u00b7 review-ready', time: '14:52', color: 'oklch(0.55 0.13 250)' });
+    if (s.submitted) log.push({ text: 'Submitted to Meridian Health Plan', time: '15:08', color: 'oklch(0.45 0.12 255)' });
+    const execLog = log.slice().reverse();
+
+    // layers (world model)
+    const cChip = (c) => { const m = this.statusMeta(c.status); return { k: c.id + ' \u00b7 ' + this.short(c.label), v: c.src, chip: m.label, chipBg: m.bg, chipColor: m.color, chipBorder: m.border }; };
+    const recMap = {
+      addendum: { t: 'Draft a clinician-approved note addendum', w: 'Highest-value action \u2014 recovers documented conservative care from the conversation.' },
+      patient: { t: 'Ask the patient one targeted PT question', w: 'The only remaining gap (C5) can only be opened by the patient.' },
+      record: { t: 'Request records from Metro Physical Therapy', w: 'Patient-reported PT must be verified before it satisfies the criterion.' },
+      packet: { t: 'Generate the provenance-backed PA packet', w: 'All five criteria are now supported \u2014 assemble the review-ready draft.' },
+      submit: { t: 'Submit the packet to Meridian Health Plan', w: 'Packet is clinician-reviewed and fully provenance-linked.' },
+      track: { t: 'Track the payer determination', w: 'Case submitted \u2014 monitor for a response to re-plan against.' },
+    };
+    const rec = recMap[this.phase()];
+
+    const layers = [
+      { idx: 'L1', title: 'Clinical state', desc: 'What care is requested and why', sep: 'transparent',
+        rows: [
+          { k: 'requested_service', v: 'MRI lumbar spine w/o contrast (72148)', chip: '' },
+          { k: 'primary_dx', v: 'Chronic mechanical low-back pain', chip: '' },
+          { k: 'comorbid_flags', v: 'PHQ-9 17 (tracked) \u00b7 BP 136/94 (recheck)', chip: '' },
+        ] },
+      { idx: 'L2', title: 'Evidence state', desc: 'What is documented, derived, verified, or unknown', sep: 'oklch(0.93 0.006 258)',
+        rows: cr.map(cChip) },
+      { idx: 'L3', title: 'Coverage state', desc: 'Payer criteria and current support', sep: 'oklch(0.93 0.006 258)',
+        rows: [
+          { k: 'payer', v: 'Meridian Health Plan \u00b7 Commercial', chip: '' },
+          { k: 'pathway', v: 'Advanced imaging \u2014 conservative-therapy pathway', chip: '' },
+          { k: 'readiness', v: rp + '% of criteria supported', chip: rp >= 100 ? 'READY' : 'IN PROGRESS', chipBg: rp >= 100 ? 'oklch(0.96 0.03 155)' : 'oklch(0.96 0.02 250)', chipColor: rp >= 100 ? 'oklch(0.45 0.1 155)' : 'oklch(0.45 0.12 255)', chipBorder: rp >= 100 ? 'oklch(0.86 0.05 155)' : 'oklch(0.87 0.04 250)' },
+        ] },
+      { idx: 'L4', title: 'Operational state', desc: 'Where the case is and who must act', sep: 'oklch(0.93 0.006 258)',
+        rows: [
+          { k: 'stage', v: this.stageLabel(), chip: '' },
+          { k: 'owner', v: this.ownerLabel(), chip: '' },
+          { k: 'deadline', v: 'PA decision SLA \u00b7 5 business days', chip: '' },
+        ] },
+      { idx: 'L5', title: 'Action state', desc: 'Feasible actions and the recommendation', sep: 'oklch(0.93 0.006 258)',
+        rows: [
+          { k: 'recommended', v: rec.t, chip: 'NEXT', chipBg: 'oklch(0.96 0.02 250)', chipColor: 'oklch(0.45 0.12 255)', chipBorder: 'oklch(0.87 0.04 250)' },
+        ] },
+    ];
+
+    // candidates
+    const candsRaw = this.candidates();
+    const candidates = candsRaw.map(c => ({
+      kind: c.kind, title: c.title, desc: c.desc, delta: c.delta, proj: c.proj,
+      recommended: c.recommended, cta: c.cta, onExecute: c.exec,
+      projColor: c.tone.c, projBg: c.tone.b,
+      scoreText: c.score.toFixed(2), scorePct: Math.round(c.score * 100),
+      scoreColor: c.recommended ? 'oklch(0.45 0.12 255)' : 'oklch(0.65 0.015 258)',
+      cardBorder: c.recommended ? 'oklch(0.55 0.13 250)' : 'oklch(0.91 0.008 255)',
+      cardShadow: c.recommended ? '0 8px 30px -12px oklch(0.55 0.13 250 / 0.4)' : 'none',
+    }));
+
+    // addendum status
+    const addStatus = s.addendumApproved ? 'CLINICIAN-REVIEWED' : 'AWAITING APPROVAL';
+    const addStatusColor = s.addendumApproved ? 'oklch(0.45 0.1 155)' : 'oklch(0.55 0.09 65)';
+    const addStatusBg = s.addendumApproved ? 'oklch(0.96 0.03 155)' : 'oklch(0.97 0.04 75)';
+    const addStatusBorder = s.addendumApproved ? 'oklch(0.86 0.05 155)' : 'oklch(0.88 0.05 75)';
+
+    // record status
+    const recStatusLabel = s.recordReceived ? 'RECEIVED' : (s.recordRequested ? 'REQUEST SENT' : 'PENDING');
+    const recStatusColor = s.recordReceived ? 'oklch(0.45 0.1 155)' : 'oklch(0.55 0.09 65)';
+    const recStatusBg = s.recordReceived ? 'oklch(0.96 0.03 155)' : 'oklch(0.97 0.04 75)';
+    const recStatusBorder = s.recordReceived ? 'oklch(0.86 0.05 155)' : 'oklch(0.88 0.05 75)';
+
+    // lifecycle
+    const order = ['Ready', 'Submitted', 'Waiting on payer', 'Determination', this.state.steps.payerResponse === 'deny' ? 'Appeal prep' : 'Resolved'];
+    const respMap = { approve: 4, more: 3, deny: 4 };
+    let curIdx = s.submitted ? 2 : 0;
+    if (s.payerResponse) curIdx = respMap[s.payerResponse];
+    const lifecycle = order.map((label, i) => {
+      const reached = i <= curIdx;
+      const isCur = i === curIdx;
+      return {
+        label,
+        dot: isCur ? 'oklch(0.45 0.12 255)' : (reached ? 'oklch(0.6 0.11 155)' : 'oklch(0.92 0.006 258)'),
+        ring: isCur ? 'oklch(0.85 0.05 250)' : (reached ? 'oklch(0.86 0.05 155)' : 'oklch(0.92 0.006 258)'),
+        textColor: reached ? 'oklch(0.35 0.02 258)' : 'oklch(0.68 0.015 258)',
+        weight: isCur ? 600 : 500,
+        connector: i < order.length - 1,
+        lineColor: i < curIdx ? 'oklch(0.6 0.11 155)' : 'oklch(0.92 0.006 258)',
+      };
+    });
+
+    // observation
+    const pr = s.payerResponse;
+    const obs = {
+      approve: { icon: '\u2713', color: 'oklch(0.45 0.1 155)', bg: 'oklch(0.96 0.03 155)', border: 'oklch(0.86 0.05 155)', title: 'Approved', a: 'observation: authorization granted', b: 'state \u2192 resolved \u00b7 no further action', action: 'Notify care team; close the loop.' },
+      more: { icon: '\u25d0', color: 'oklch(0.5 0.08 60)', bg: 'oklch(0.97 0.04 75)', border: 'oklch(0.88 0.05 75)', title: 'More information requested', a: 'observation: payer requests functional-limitation detail', b: 'gap linked to payer response', action: 'Ask patient one question on current activity limits.' },
+      deny: { icon: '\u2715', color: 'oklch(0.5 0.11 25)', bg: 'oklch(0.97 0.03 25)', border: 'oklch(0.86 0.06 25)', title: 'Denied', a: 'observation: denied \u2014 insufficient conservative-therapy evidence', b: 'appeal deadline active \u00b7 14 days', action: 'Prepare appeal + schedule peer-to-peer with the PT record attached.' },
+    };
+    const o = pr ? obs[pr] : null;
+
+    // ---- case progress toward the real goal: approval / care delivered ----
+    const done = {
+      analyzed: true,
+      evidence: rp >= 100,
+      packet: s.packetGenerated,
+      submitted: s.submitted,
+      approved: pr === 'approve',
+    };
+    const casePct = Math.round((0.15 + 0.35 * (rp / 100) + 0.15 * (s.packetGenerated ? 1 : 0) + 0.15 * (s.submitted ? 1 : 0) + 0.20 * (pr === 'approve' ? 1 : 0)) * 100);
+    let caseStatus, caseColor;
+    if (pr === 'approve') { caseStatus = 'Authorized \u2014 patient can receive care'; caseColor = 'oklch(0.5 0.11 155)'; }
+    else if (pr === 'deny') { caseStatus = 'Denied \u2014 appeal in progress'; caseColor = 'oklch(0.55 0.15 25)'; }
+    else if (pr === 'more') { caseStatus = 'More information requested'; caseColor = 'oklch(0.58 0.1 65)'; }
+    else if (s.submitted) { caseStatus = 'Submitted \u2014 awaiting determination'; caseColor = 'oklch(0.5 0.12 255)'; }
+    else if (s.packetGenerated) { caseStatus = 'Packet ready to submit'; caseColor = 'oklch(0.5 0.12 255)'; }
+    else if (rp >= 100) { caseStatus = 'Evidence complete'; caseColor = 'oklch(0.5 0.12 255)'; }
+    else { caseStatus = 'Gathering evidence'; caseColor = 'oklch(0.5 0.12 255)'; }
+
+    const mDefs = [
+      { key: 'analyzed', label: 'Encounter analyzed' },
+      { key: 'evidence', label: 'Evidence complete' },
+      { key: 'packet', label: 'Packet ready' },
+      { key: 'submitted', label: 'Submitted' },
+      { key: 'approved', label: 'Care approved' },
+    ];
+    let curM = mDefs.findIndex(m => !done[m.key]);
+    if (curM === -1) curM = mDefs.length - 1;
+    const denied = pr === 'deny';
+    const milestones = mDefs.map((m, i) => {
+      const isDone = done[m.key];
+      const isCur = i === curM;
+      const isDen = denied && m.key === 'approved';
+      return {
+        label: m.label,
+        mark: isDen ? '\u2715' : (isDone ? '\u2713' : (i + 1)),
+        dot: isDen ? 'oklch(0.55 0.15 25)' : (isDone ? 'oklch(0.6 0.11 155)' : (isCur ? 'oklch(0.45 0.12 255)' : 'oklch(0.94 0.006 258)')),
+        ring: isDen ? 'oklch(0.88 0.06 25)' : (isDone ? 'oklch(0.86 0.05 155)' : (isCur ? 'oklch(0.85 0.05 250)' : 'oklch(0.92 0.006 258)')),
+        markColor: (isDone || isCur || isDen) ? '#fff' : 'oklch(0.6 0.02 258)',
+        textColor: (isDone || isCur || isDen) ? 'oklch(0.34 0.02 258)' : 'oklch(0.68 0.015 258)',
+        weight: (isCur || isDen) ? 600 : 500,
+        connector: i < mDefs.length - 1,
+        flex: i < mDefs.length - 1 ? 'flex:1;' : 'flex:0 0 auto;',
+        lineColor: i < curM ? 'oklch(0.6 0.11 155)' : 'oklch(0.92 0.006 258)',
+      };
+    });
+
+    return {
+      // screen flags
+      isEncounter: screen === 'encounter',
+      isWorld: screen === 'world',
+      isDecision: screen === 'decision',
+      isAddendum: screen === 'addendum',
+      isPatient: screen === 'patient',
+      isRecord: screen === 'record',
+      isPacket: screen === 'packet',
+      isLifecycle: screen === 'lifecycle',
+
+      readinessPct: rp, readinessColor, readinessLabel,
+      casePct, caseStatus, caseColor, milestones,
+      criteria, navItems, execLog, layers, candidates,
+      candCount: candsRaw.length,
+      openCount: cr.filter(c => this.statusMeta(c.status).w < 1).length,
+      stateVersion: 'v' + (log.length),
+      lastEvent: (execLog[0] && execLog[0].time) || '09:14',
+      recTitle: rec.t, recWhy: rec.w,
+
+      transcript: this.transcript(),
+      provenance: ['transcript \u00b7 12:04', 'clinical note', 'FHIR \u00b7 medication'],
+
+      addStatus, addStatusColor, addStatusBg, addStatusBorder,
+      addendumPending: !s.addendumApproved, addendumDone: s.addendumApproved,
+
+      patientAnswered: s.patientAnswered, patientPending: !s.patientAnswered,
+
+      recStatusLabel, recStatusColor, recStatusBg, recStatusBorder,
+      recordPending: !s.recordReceived, recordDone: s.recordReceived,
+
+      lifecycle,
+      hasResponse: !!pr, noResponse: !pr,
+      obsIcon: o ? o.icon : '', obsColor: o ? o.color : '', obsBg: o ? o.bg : '', obsBorder: o ? o.border : 'oklch(0.91 0.008 255)',
+      obsTitle: o ? o.title : '', obsDetailA: o ? o.a : '', obsDetailB: o ? o.b : '', obsAction: o ? o.action : '',
+
+      engineLabel, engineDot,
+
+      // handlers
+      goEncounter: () => this.go('encounter'),
+      goWorld: () => this.go('world'),
+      goDecision: () => this.go('decision'),
+      approveAddendum: () => { this.set({ addendumApproved: true }); this.decide('conservative_care', 'approve'); },
+      patientRespond: () => { this.set({ patientAnswered: true }); this.decide('physical_therapy', 'answer', '~8 weeks at Metro Physical Therapy, Jan–Mar.'); },
+      receiveRecord: () => { this.set({ recordReceived: true }); },
+      generateAndGo: () => { this.set({ packetGenerated: true }); this.go('packet'); },
+      submitPacket: () => { this.set({ submitted: true }); this.go('lifecycle'); },
+      respApprove: () => this.set({ payerResponse: 'approve' }),
+      respMore: () => this.set({ payerResponse: 'more' }),
+      respDeny: () => this.set({ payerResponse: 'deny' }),
+    };
+  }
+
+  short(l) {
+    return l.replace('Symptom duration \u2265 6 weeks', 'duration')
+      .replace('Red-flag pathology absent', 'red_flags')
+      .replace('Documented neurologic examination', 'neuro_exam')
+      .replace('\u2265 6 wks self-directed conservative care', 'conservative_care')
+      .replace('Completed course of physical therapy', 'physical_therapy');
+  }
+  stageLabel() {
+    const p = this.phase();
+    return { addendum: 'Evidence recovery \u00b7 addendum', patient: 'Information gathering \u00b7 patient', record: 'Verification \u00b7 external record', packet: 'Packet assembly', submit: 'Ready to submit', track: 'Submitted \u00b7 tracking' }[p];
+  }
+  ownerLabel() {
+    const p = this.phase();
+    return { addendum: 'Clinician \u2014 approve addendum', patient: 'Patient \u2014 answer question', record: 'Praxess \u2014 retrieve record', packet: 'Clinician \u2014 review packet', submit: 'Clinician \u2014 submit', track: 'Payer \u2014 determination' }[p];
+  }
+  transcript() {
+    return [
+      { tag: "PT", text: "A dull band across the very bottom of my back. Right now it's like a four out of ten. Desk days make it worse." },
+      { tag: "DR", text: "Does it ever shoot down a leg? Numbness, tingling, weakness in the feet?" },
+      { tag: "PT", text: "No, nothing like that. It stays in the back." },
+      { tag: "DR", text: "Boring is actually good news with backs. What helps?", flag: true },
+      { tag: "PT", text: "Walking. Hot showers. I had ibuprofen for a while, which worked, but the bottle ran out months ago and I never dealt with it.", flag: true },
+      { tag: "DR", text: "I'm prescribing ibuprofen 400 milligrams — take one with food when it flares, not on an empty stomach." },
+    ].map(t => ({
+      tag: t.tag,
+      text: t.text,
+      tagColor: t.tag === 'DR' ? 'oklch(0.45 0.12 255)' : 'oklch(0.55 0.09 300)',
+      rowBg: t.flag ? 'oklch(0.97 0.02 250)' : 'transparent',
+      rowBorder: t.flag ? 'oklch(0.9 0.02 250)' : 'transparent',
+    }));
+  }
+}
+</script>
+</body>
+</html>
