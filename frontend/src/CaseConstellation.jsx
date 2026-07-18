@@ -1,7 +1,6 @@
 // CaseConstellation — pseudo-3D case-state graph for the World Model screen.
-// Technique ported from praxigen's IntelligenceConstellation (fibonacci-sphere
-// nodes, matrix rotation + perspective projection, outward-bowed bezier edges,
-// auto-orbit + pointer spin). Recast for Praxess: the core is the case state;
+// Fibonacci-sphere node placement, matrix rotation + perspective projection,
+// outward-bowed bezier edges, auto-orbit + pointer spin. The core is the case state;
 // the labeled ring is the evidence sources the engine binds facts to; the
 // unlabeled satellites read as the wider belief state. Labels stay at the
 // altitude the UI already discloses — no engine internals.

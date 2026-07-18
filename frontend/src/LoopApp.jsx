@@ -6,6 +6,7 @@
 // inline oklch() styles, parsed at runtime by css().
 import React, { useReducer, useRef } from 'react';
 import CaseConstellation from './CaseConstellation.jsx';
+import { buildPacketPdf } from './packetPdf.js';
 import './loop.css';
 
 // ---- tiny runtime the verbatim class needs (in place of the .dc runtime) ----
@@ -538,12 +539,20 @@ class Component extends DCLogic {
       patientRespond: () => { this.set({ patientAnswered: true }); this.decide('physical_therapy', 'answer', '~8 weeks at Metro Physical Therapy, Jan–Mar.'); },
       receiveRecord: () => { this.set({ recordReceived: true }); },
       generateAndGo: () => { this.set({ packetGenerated: true }); this.go('packet'); },
+      downloadPacketPdf: () => {
+        const cr = this.criteriaRaw().map(c => ({
+          id: c.id, label: c.label,
+          packetSource: c.src,
+          packetTag: this.statusMeta(c.status).label,
+        }));
+        buildPacketPdf({ criteria: cr, addendumApproved: s.addendumApproved, patientAnswered: s.patientAnswered, recordReceived: s.recordReceived });
+      },
       submitPacket: () => { this.set({ submitted: true }); this.go('lifecycle'); },
       respApprove: () => this.set({ payerResponse: 'approve' }),
       respMore: () => this.set({ payerResponse: 'more' }),
       respDeny: () => this.set({ payerResponse: 'deny' }),
 
-      // ---- post-denial workspace (praxigen mechanisms: appeal letter + P2P prep) ----
+      // ---- post-denial workspace: appeal letter + peer-to-peer prep ----
       isDenied: pr === 'deny',
       appealLetterApproved: s.appealLetterApproved,
       p2pPrepped: s.p2pPrepped,
@@ -1140,6 +1149,7 @@ export default function LoopApp() {
 
           <div style={css(`padding:16px 22px;border-top:1px solid oklch(0.93 0.006 258);display:flex;gap:10px;align-items:center;`)}>
             <span style={css(`flex:1;font-size:12px;color:oklch(0.55 0.02 258);`)}>Draft — the clinician reviews before submission. Praxess does not auto-submit.</span>
+            <button onClick={V.downloadPacketPdf} style={css(`padding:12px 18px;border-radius:9px;border:1px solid oklch(0.88 0.01 255);background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;color:oklch(0.4 0.02 258);cursor:pointer;`)}>↓ Download packet · PDF</button>
             <button onClick={V.submitPacket} style={css(`padding:12px 22px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;`)}>Submit to Meridian →</button>
           </div>
         </div>

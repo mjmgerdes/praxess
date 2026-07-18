@@ -11,3 +11,4 @@ frontend/dist/
 backend/logs/
 *.egg-info/
 .pytest_cache/
+.agents/

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Cron job: refresh data/payer-intel.json from the Praxigen coverage API.
 
-Mirrors praxigen's grounded-data pipeline rules: every payer row carries its
+Grounded-data rules: every payer row carries its
 sources; criteria are summarized from cited public policy documents, never
 fabricated; a payer with no published row stays explicitly empty rather than
 being filled in. Schedule lives in ops/CRON.md (nightly).

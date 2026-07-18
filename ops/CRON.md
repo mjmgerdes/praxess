@@ -1,4 +1,4 @@
-# Scheduled jobs (praxigen-style grounded pipelines)
+# Scheduled jobs (grounded data pipelines)
 
 The world model stays current through two recurring jobs. Both are plain
 scripts — run them from crontab, a GitHub Action, or any scheduler.
