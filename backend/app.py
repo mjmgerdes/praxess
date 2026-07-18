@@ -70,6 +70,23 @@ class AnalyzeTranscriptRequest(BaseModel):
     session_id: str = "default"
 
 
+class DiarizeRequest(BaseModel):
+    transcript: str
+
+
+@app.post("/api/diarize")
+def diarize_endpoint(req: DiarizeRequest) -> dict[str, Any]:
+    """Label speaker turns in a raw transcript using Claude."""
+    if not req.transcript or len(req.transcript.strip()) < 10:
+        raise HTTPException(status_code=400, detail="transcript too short")
+    try:
+        from mine import diarize
+        lines = diarize(req.transcript.strip())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    return {"lines": lines, "live": live_mine_available()}
+
+
 @app.post("/api/analyze_transcript")
 def analyze_transcript_endpoint(req: AnalyzeTranscriptRequest) -> dict[str, Any]:
     if not req.transcript or len(req.transcript.strip()) < 20:
