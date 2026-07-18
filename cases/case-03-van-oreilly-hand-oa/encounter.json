@@ -1,0 +1,2194 @@
+{
+  "id": "01573895-dbf5-29c6-4ef9-cd09aecc51f6::01573895-dbf5-29c6-f885-ade2bd6537a5",
+  "metadata": {
+    "source": "synthea-fhir-r4",
+    "synthetic": true,
+    "patient_id": "01573895-dbf5-29c6-4ef9-cd09aecc51f6",
+    "encounter_id": "01573895-dbf5-29c6-f885-ade2bd6537a5",
+    "encounter_reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5",
+    "date": "2019-07-25T07:59:19-07:00",
+    "status": "finished",
+    "visit_type": "General examination of patient (procedure)",
+    "document_status": "current",
+    "related_resource_counts": {
+      "Condition": 2,
+      "Observation": 17,
+      "Procedure": 9,
+      "DiagnosticReport": 6,
+      "Immunization": 3
+    },
+    "visit_title": "Annual physical \u2014 hand osteoarthritis and anxiety screening"
+  },
+  "patient_context": {
+    "patient": {
+      "resourceType": "Patient",
+      "id": "01573895-dbf5-29c6-4ef9-cd09aecc51f6",
+      "name": [
+        {
+          "use": "official",
+          "family": "O'Reilly",
+          "given": [
+            "Van",
+            "Loren"
+          ],
+          "prefix": [
+            "Mr."
+          ]
+        }
+      ],
+      "gender": "male",
+      "birthDate": "1977-07-14",
+      "maritalStatus": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/v3-MaritalStatus",
+            "code": "M",
+            "display": "Married"
+          }
+        ],
+        "text": "Married"
+      },
+      "address": [
+        {
+          "city": "Everett",
+          "state": "MA",
+          "country": "US"
+        }
+      ],
+      "communication": [
+        {
+          "language": {
+            "coding": [
+              {
+                "system": "urn:ietf:bcp:47",
+                "code": "en-US",
+                "display": "English (United States)"
+              }
+            ],
+            "text": "English (United States)"
+          }
+        }
+      ]
+    },
+    "longitudinal_summary": {
+      "resource_counts": {
+        "CarePlan": 1,
+        "CareTeam": 1,
+        "Condition": 15,
+        "Device": 1,
+        "DiagnosticReport": 36,
+        "DocumentReference": 18,
+        "Encounter": 18,
+        "ImagingStudy": 1,
+        "Immunization": 10,
+        "MedicationRequest": 1,
+        "Observation": 89,
+        "Patient": 1,
+        "Procedure": 59
+      },
+      "condition_labels": [
+        "Educated to high school level (finding)",
+        "Localized, primary osteoarthritis of the hand (disorder)",
+        "Body mass index 30+ - obesity (finding)",
+        "Medication review due (situation)",
+        "Stress (finding)"
+      ],
+      "medication_labels": [
+        "Naproxen sodium 220 MG Oral Tablet"
+      ]
+    }
+  },
+  "encounter_fhir": {
+    "encounter": {
+      "resourceType": "Encounter",
+      "id": "01573895-dbf5-29c6-f885-ade2bd6537a5",
+      "meta": {
+        "profile": [
+          "http://hl7.org/fhir/us/core/StructureDefinition/us-core-encounter"
+        ]
+      },
+      "identifier": [
+        {
+          "use": "official",
+          "system": "https://github.com/synthetichealth/synthea",
+          "value": "01573895-dbf5-29c6-f885-ade2bd6537a5"
+        }
+      ],
+      "status": "finished",
+      "class": {
+        "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+        "code": "AMB"
+      },
+      "type": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "162673000",
+              "display": "General examination of patient (procedure)"
+            }
+          ],
+          "text": "General examination of patient (procedure)"
+        }
+      ],
+      "subject": {
+        "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6",
+        "display": "Mr. Van763 Loren192 O'Reilly797"
+      },
+      "participant": [
+        {
+          "type": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/v3-ParticipationType",
+                  "code": "PPRF",
+                  "display": "primary performer"
+                }
+              ],
+              "text": "primary performer"
+            }
+          ],
+          "period": {
+            "start": "2019-07-25T07:59:19-07:00",
+            "end": "2019-07-25T08:42:04-07:00"
+          },
+          "individual": {
+            "reference": "Practitioner?identifier=http://hl7.org/fhir/sid/us-npi|9999958991",
+            "display": "Dr. Nicholle822 Satterfield305"
+          }
+        }
+      ],
+      "period": {
+        "start": "2019-07-25T07:59:19-07:00",
+        "end": "2019-07-25T08:42:04-07:00"
+      },
+      "location": [
+        {
+          "location": {
+            "reference": "Location?identifier=https://github.com/synthetichealth/synthea|94a36583-c094-3312-b728-d4a42ec39538",
+            "display": "MELROSE INTERNAL MEDICINE ASSOC PC"
+          }
+        }
+      ],
+      "serviceProvider": {
+        "reference": "Organization?identifier=https://github.com/synthetichealth/synthea|8d5880eb-1dd8-31ea-b7c5-21709f3bb341",
+        "display": "MELROSE INTERNAL MEDICINE ASSOC PC"
+      }
+    },
+    "related_resources": {
+      "Condition": [
+        {
+          "resourceType": "Condition",
+          "id": "01573895-dbf5-29c6-32c3-074c611c7442",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-encounter-diagnosis"
+            ]
+          },
+          "clinicalStatus": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+                "code": "resolved"
+              }
+            ]
+          },
+          "verificationStatus": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+                "code": "confirmed"
+              }
+            ]
+          },
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                  "code": "encounter-diagnosis",
+                  "display": "Encounter Diagnosis"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "314529007",
+                "display": "Medication review due (situation)"
+              }
+            ],
+            "text": "Medication review due (situation)"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "onsetDateTime": "2019-07-25T07:59:19-07:00",
+          "abatementDateTime": "2019-07-25T07:59:19-07:00",
+          "recordedDate": "2019-07-25T07:59:19-07:00"
+        },
+        {
+          "resourceType": "Condition",
+          "id": "01573895-dbf5-29c6-7149-d8b85f7d1ceb",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-encounter-diagnosis"
+            ]
+          },
+          "clinicalStatus": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+                "code": "resolved"
+              }
+            ]
+          },
+          "verificationStatus": {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+                "code": "confirmed"
+              }
+            ]
+          },
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+                  "code": "encounter-diagnosis",
+                  "display": "Encounter Diagnosis"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "73595000",
+                "display": "Stress (finding)"
+              }
+            ],
+            "text": "Stress (finding)"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "onsetDateTime": "2019-07-25T08:42:04-07:00",
+          "abatementDateTime": "2025-08-07T08:40:30-07:00",
+          "recordedDate": "2019-07-25T08:42:04-07:00"
+        }
+      ],
+      "Observation": [
+        {
+          "resourceType": "Observation",
+          "id": "01573895-dbf5-29c6-dff4-22c04fb6d551",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-body-height"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                  "code": "vital-signs",
+                  "display": "Vital signs"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "8302-2",
+                "display": "Body Height"
+              }
+            ],
+            "text": "Body Height"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T07:59:19-07:00",
+          "issued": "2019-07-25T07:59:19.988-07:00",
+          "valueQuantity": {
+            "value": 162.1,
+            "unit": "cm",
+            "system": "http://unitsofmeasure.org",
+            "code": "cm"
+          }
+        },
+        {
+          "resourceType": "Observation",
+          "id": "01573895-dbf5-29c6-3b35-f150f40da012",
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                  "code": "vital-signs",
+                  "display": "Vital signs"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "72514-3",
+                "display": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"
+              }
+            ],
+            "text": "Pain severity - 0-10 verbal numeric rating [Score] - Reported"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T07:59:19-07:00",
+          "issued": "2019-07-25T07:59:19.988-07:00",
+          "valueQuantity": {
+            "value": 3,
+            "unit": "{score}",
+            "system": "http://unitsofmeasure.org",
+            "code": "{score}"
+          }
+        },
+        {
+          "resourceType": "Observation",
+          "id": "01573895-dbf5-29c6-174b-8a6209edeabb",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-body-weight"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                  "code": "vital-signs",
+                  "display": "Vital signs"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "29463-7",
+                "display": "Body Weight"
+              }
+            ],
+            "text": "Body Weight"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T07:59:19-07:00",
+          "issued": "2019-07-25T07:59:19.988-07:00",
+          "valueQuantity": {
+            "value": 73.5,
+            "unit": "kg",
+            "system": "http://unitsofmeasure.org",
+            "code": "kg"
+          }
+        },
+        {
+          "resourceType": "Observation",
+          "id": "01573895-dbf5-29c6-61d0-0b8c8d00c5f2",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-bmi"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                  "code": "vital-signs",
+                  "display": "Vital signs"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "39156-5",
+                "display": "Body mass index (BMI) [Ratio]"
+              }
+            ],
+            "text": "Body mass index (BMI) [Ratio]"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T07:59:19-07:00",
+          "issued": "2019-07-25T07:59:19.988-07:00",
+          "valueQuantity": {
+            "value": 27.96,
+            "unit": "kg/m2",
+            "system": "http://unitsofmeasure.org",
+            "code": "kg/m2"
+          }
+        },
+        {
+          "resourceType": "Observation",
+          "id": "01573895-dbf5-29c6-d0ba-e10b081f68e9",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-blood-pressure"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                  "code": "vital-signs",
+                  "display": "Vital signs"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "85354-9",
+                "display": "Blood pressure panel with all children optional"
+              }
+            ],
+            "text": "Blood pressure panel with all children optional"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T07:59:19-07:00",
+          "issued": "2019-07-25T07:59:19.988-07:00",
+          "component": [
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "8462-4",
+                    "display": "Diastolic Blood Pressure"
+                  }
+                ],
+                "text": "Diastolic Blood Pressure"
+              },
+              "valueQuantity": {
+                "value": 78,
+                "unit": "mm[Hg]",
+                "system": "http://unitsofmeasure.org",
+                "code": "mm[Hg]"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "8480-6",
+                    "display": "Systolic Blood Pressure"
+                  }
+                ],
+                "text": "Systolic Blood Pressure"
+              },
+              "valueQuantity": {
+                "value": 102,
+                "unit": "mm[Hg]",
+                "system": "http://unitsofmeasure.org",
+                "code": "mm[Hg]"
+              }
+            }
+          ]
+        },
+        {
+          "resourceType": "Observation",
+          "id": "01573895-dbf5-29c6-a0f6-751712c7f175",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-heart-rate"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                  "code": "vital-signs",
+                  "display": "Vital signs"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "8867-4",
+                "display": "Heart rate"
+              }
+            ],
+            "text": "Heart rate"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T07:59:19-07:00",
+          "issued": "2019-07-25T07:59:19.988-07:00",
+          "valueQuantity": {
+            "value": 74,
+            "unit": "/min",
+            "system": "http://unitsofmeasure.org",
+            "code": "/min"
+          }
+        },
+        {
+          "resourceType": "Observation",
+          "id": "01573895-dbf5-29c6-f9f3-dff9e3f39a2e",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-respiratory-rate"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                  "code": "vital-signs",
+                  "display": "Vital signs"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "9279-1",
+                "display": "Respiratory rate"
+              }
+            ],
+            "text": "Respiratory rate"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T07:59:19-07:00",
+          "issued": "2019-07-25T07:59:19.988-07:00",
+          "valueQuantity": {
+            "value": 15,
+            "unit": "/min",
+            "system": "http://unitsofmeasure.org",
+            "code": "/min"
+          }
+        },
+        {
+          "resourceType": "Observation",
+          "id": "01573895-dbf5-29c6-ec65-53ce93489b08",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab",
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                  "code": "laboratory",
+                  "display": "Laboratory"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "2093-3",
+                "display": "Cholesterol [Mass/volume] in Serum or Plasma"
+              }
+            ],
+            "text": "Cholesterol [Mass/volume] in Serum or Plasma"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T07:59:19-07:00",
+          "issued": "2019-07-25T07:59:19.988-07:00",
+          "valueQuantity": {
+            "value": 157.54,
+            "unit": "mg/dL",
+            "system": "http://unitsofmeasure.org",
+            "code": "mg/dL"
+          }
+        },
+        {
+          "resourceType": "Observation",
+          "id": "01573895-dbf5-29c6-e755-b8c16d78c3f7",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab",
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                  "code": "laboratory",
+                  "display": "Laboratory"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "2571-8",
+                "display": "Triglyceride [Mass/volume] in Serum or Plasma"
+              }
+            ],
+            "text": "Triglyceride [Mass/volume] in Serum or Plasma"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T07:59:19-07:00",
+          "issued": "2019-07-25T07:59:19.988-07:00",
+          "valueQuantity": {
+            "value": 134.84,
+            "unit": "mg/dL",
+            "system": "http://unitsofmeasure.org",
+            "code": "mg/dL"
+          }
+        },
+        {
+          "resourceType": "Observation",
+          "id": "01573895-dbf5-29c6-fef7-a2ba8817ce12",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab",
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                  "code": "laboratory",
+                  "display": "Laboratory"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "18262-6",
+                "display": "Cholesterol in LDL [Mass/volume] in Serum or Plasma by Direct assay"
+              }
+            ],
+            "text": "Cholesterol in LDL [Mass/volume] in Serum or Plasma by Direct assay"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T07:59:19-07:00",
+          "issued": "2019-07-25T07:59:19.988-07:00",
+          "valueQuantity": {
+            "value": 101.02,
+            "unit": "mg/dL",
+            "system": "http://unitsofmeasure.org",
+            "code": "mg/dL"
+          }
+        },
+        {
+          "resourceType": "Observation",
+          "id": "01573895-dbf5-29c6-5a78-159d52470763",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab",
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                  "code": "laboratory",
+                  "display": "Laboratory"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "2085-9",
+                "display": "Cholesterol in HDL [Mass/volume] in Serum or Plasma"
+              }
+            ],
+            "text": "Cholesterol in HDL [Mass/volume] in Serum or Plasma"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T07:59:19-07:00",
+          "issued": "2019-07-25T07:59:19.988-07:00",
+          "valueQuantity": {
+            "value": 29.55,
+            "unit": "mg/dL",
+            "system": "http://unitsofmeasure.org",
+            "code": "mg/dL"
+          }
+        },
+        {
+          "resourceType": "Observation",
+          "id": "01573895-dbf5-29c6-2e34-681f040eb73c",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-smokingstatus",
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-simple-observation"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                  "code": "social-history",
+                  "display": "Social history"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "72166-2",
+                "display": "Tobacco smoking status"
+              }
+            ],
+            "text": "Tobacco smoking status"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T07:59:19-07:00",
+          "issued": "2019-07-25T07:59:19.988-07:00",
+          "valueCodeableConcept": {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "266919005",
+                "display": "Never smoked tobacco (finding)"
+              }
+            ],
+            "text": "Never smoked tobacco (finding)"
+          }
+        },
+        {
+          "resourceType": "Observation",
+          "id": "01573895-dbf5-29c6-c34c-c0e4d98b4148",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-screening-assessment",
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-screening-assessment"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                  "code": "survey",
+                  "display": "Survey"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "93025-5",
+                "display": "Protocol for Responding to and Assessing Patients' Assets, Risks, and Experiences [PRAPARE]"
+              }
+            ],
+            "text": "Protocol for Responding to and Assessing Patients' Assets, Risks, and Experiences [PRAPARE]"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T08:42:04-07:00",
+          "issued": "2019-07-25T08:42:04.988-07:00",
+          "component": [
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "76501-6",
+                    "display": "Within the last year, have you been afraid of your partner or ex-partner"
+                  }
+                ],
+                "text": "Within the last year, have you been afraid of your partner or ex-partner"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA32-8",
+                    "display": "No"
+                  }
+                ],
+                "text": "No"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "93026-3",
+                    "display": "Do you feel physically and emotionally safe where you currently live [PRAPARE]"
+                  }
+                ],
+                "text": "Do you feel physically and emotionally safe where you currently live [PRAPARE]"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA33-6",
+                    "display": "Yes"
+                  }
+                ],
+                "text": "Yes"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "93027-1",
+                    "display": "Are you a refugee"
+                  }
+                ],
+                "text": "Are you a refugee"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA32-8",
+                    "display": "No"
+                  }
+                ],
+                "text": "No"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "93028-9",
+                    "display": "Have you spent more than 2 nights in a row in a jail, prison, detention center, or juvenile correctional facility in past 1 year [PRAPARE]"
+                  }
+                ],
+                "text": "Have you spent more than 2 nights in a row in a jail, prison, detention center, or juvenile correctional facility in past 1 year [PRAPARE]"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA32-8",
+                    "display": "No"
+                  }
+                ],
+                "text": "No"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "93038-8",
+                    "display": "Stress level"
+                  }
+                ],
+                "text": "Stress level"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA13909-9",
+                    "display": "Somewhat"
+                  }
+                ],
+                "text": "Somewhat"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "93029-7",
+                    "display": "How often do you see or talk to people that you care about and feel close to [PRAPARE]"
+                  }
+                ],
+                "text": "How often do you see or talk to people that you care about and feel close to [PRAPARE]"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA30131-9",
+                    "display": "3 to 5 times a week"
+                  }
+                ],
+                "text": "3 to 5 times a week"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "93030-5",
+                    "display": "Has lack of transportation kept you from medical appointments, meetings, work, or from getting things needed for daily living"
+                  }
+                ],
+                "text": "Has lack of transportation kept you from medical appointments, meetings, work, or from getting things needed for daily living"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA32-8",
+                    "display": "No"
+                  }
+                ],
+                "text": "No"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "93031-3",
+                    "display": "Have you or any family members you live with been unable to get any of the following when it was really needed in past 1 year [PRAPARE]"
+                  }
+                ],
+                "text": "Have you or any family members you live with been unable to get any of the following when it was really needed in past 1 year [PRAPARE]"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA30122-8",
+                    "display": "I choose not to answer this question"
+                  }
+                ],
+                "text": "I choose not to answer this question"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "63586-2",
+                    "display": "What was your best estimate of the total income of all family members from all sources, before taxes, in last year [PhenX]"
+                  }
+                ],
+                "text": "What was your best estimate of the total income of all family members from all sources, before taxes, in last year [PhenX]"
+              },
+              "valueQuantity": {
+                "value": 46526,
+                "unit": "/a",
+                "system": "http://unitsofmeasure.org",
+                "code": "/a"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "76437-3",
+                    "display": "Primary insurance"
+                  }
+                ],
+                "text": "Primary insurance"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA6350-8",
+                    "display": "Private insurance"
+                  }
+                ],
+                "text": "Private insurance"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "67875-5",
+                    "display": "Employment status - current"
+                  }
+                ],
+                "text": "Employment status - current"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA30136-8",
+                    "display": "Full-time work"
+                  }
+                ],
+                "text": "Full-time work"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "82589-3",
+                    "display": "Highest level of education"
+                  }
+                ],
+                "text": "Highest level of education"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA30192-1",
+                    "display": "High school diploma or GED"
+                  }
+                ],
+                "text": "High school diploma or GED"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "56799-0",
+                    "display": "Address"
+                  }
+                ],
+                "text": "Address"
+              },
+              "valueString": "387 Kohler Vista Unit 67"
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "93033-9",
+                    "display": "Are you worried about losing your housing [PRAPARE]"
+                  }
+                ],
+                "text": "Are you worried about losing your housing [PRAPARE]"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA32-8",
+                    "display": "No"
+                  }
+                ],
+                "text": "No"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "71802-3",
+                    "display": "Housing status"
+                  }
+                ],
+                "text": "Housing status"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA30189-7",
+                    "display": "I have housing"
+                  }
+                ],
+                "text": "I have housing"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "63512-8",
+                    "display": "How many people are living or staying at this address [#]"
+                  }
+                ],
+                "text": "How many people are living or staying at this address [#]"
+              },
+              "valueQuantity": {
+                "value": 3,
+                "unit": "{#}",
+                "system": "http://unitsofmeasure.org",
+                "code": "{#}"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "54899-0",
+                    "display": "Preferred language"
+                  }
+                ],
+                "text": "Preferred language"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA43-5",
+                    "display": "English"
+                  }
+                ],
+                "text": "English"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "93034-7",
+                    "display": "Discharged from the U.S. Armed Forces"
+                  }
+                ],
+                "text": "Discharged from the U.S. Armed Forces"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA32-8",
+                    "display": "No"
+                  }
+                ],
+                "text": "No"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "93035-4",
+                    "display": "Has season or migrant farm work been your or your family's main source of income at any point in past 2 years [PRAPARE]"
+                  }
+                ],
+                "text": "Has season or migrant farm work been your or your family's main source of income at any point in past 2 years [PRAPARE]"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA30122-8",
+                    "display": "I choose not to answer this question"
+                  }
+                ],
+                "text": "I choose not to answer this question"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "32624-9",
+                    "display": "Race"
+                  }
+                ],
+                "text": "Race"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA4457-3",
+                    "display": "White"
+                  }
+                ],
+                "text": "White"
+              }
+            },
+            {
+              "code": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "56051-6",
+                    "display": "Hispanic or Latino"
+                  }
+                ],
+                "text": "Hispanic or Latino"
+              },
+              "valueCodeableConcept": {
+                "coding": [
+                  {
+                    "system": "http://loinc.org",
+                    "code": "LA32-8",
+                    "display": "No"
+                  }
+                ],
+                "text": "No"
+              }
+            }
+          ]
+        },
+        {
+          "resourceType": "Observation",
+          "id": "01573895-dbf5-29c6-6857-6243c15368a3",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-screening-assessment"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                  "code": "survey",
+                  "display": "Survey"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "70274-6",
+                "display": "Generalized anxiety disorder 7 item (GAD-7) total score [Reported.PHQ]"
+              }
+            ],
+            "text": "Generalized anxiety disorder 7 item (GAD-7) total score [Reported.PHQ]"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T09:11:38-07:00",
+          "issued": "2019-07-25T09:11:38.988-07:00",
+          "valueQuantity": {
+            "value": 12,
+            "unit": "{score}",
+            "system": "http://unitsofmeasure.org",
+            "code": "{score}"
+          }
+        },
+        {
+          "resourceType": "Observation",
+          "id": "01573895-dbf5-29c6-bf0c-cb71365a2e6f",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-screening-assessment"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                  "code": "survey",
+                  "display": "Survey"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "55758-7",
+                "display": "Patient Health Questionnaire 2 item (PHQ-2) total score [Reported]"
+              }
+            ],
+            "text": "Patient Health Questionnaire 2 item (PHQ-2) total score [Reported]"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T09:53:05-07:00",
+          "issued": "2019-07-25T09:53:05.988-07:00",
+          "valueQuantity": {
+            "value": 5,
+            "unit": "{score}",
+            "system": "http://unitsofmeasure.org",
+            "code": "{score}"
+          }
+        },
+        {
+          "resourceType": "Observation",
+          "id": "01573895-dbf5-29c6-bbed-3cb0f6aced99",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-screening-assessment"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                  "code": "survey",
+                  "display": "Survey"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "44261-6",
+                "display": "Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]"
+              }
+            ],
+            "text": "Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T10:16:35-07:00",
+          "issued": "2019-07-25T10:16:35.988-07:00",
+          "valueQuantity": {
+            "value": 4,
+            "unit": "{score}",
+            "system": "http://unitsofmeasure.org",
+            "code": "{score}"
+          }
+        },
+        {
+          "resourceType": "Observation",
+          "id": "01573895-dbf5-29c6-a698-27d3c791a15d",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-screening-assessment"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                  "code": "survey",
+                  "display": "Survey"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "75626-2",
+                "display": "Total score [AUDIT-C]"
+              }
+            ],
+            "text": "Total score [AUDIT-C]"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T10:47:52-07:00",
+          "issued": "2019-07-25T10:47:52.988-07:00",
+          "valueQuantity": {
+            "value": 2,
+            "unit": "{score}",
+            "system": "http://unitsofmeasure.org",
+            "code": "{score}"
+          }
+        }
+      ],
+      "Procedure": [
+        {
+          "resourceType": "Procedure",
+          "id": "01573895-dbf5-29c6-8120-f7c552c566ce",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-procedure"
+            ]
+          },
+          "status": "completed",
+          "code": {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "430193006",
+                "display": "Medication reconciliation (procedure)"
+              }
+            ],
+            "text": "Medication reconciliation (procedure)"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "performedPeriod": {
+            "start": "2019-07-25T07:59:19-07:00",
+            "end": "2019-07-25T08:14:19-07:00"
+          },
+          "location": {
+            "reference": "Location?identifier=https://github.com/synthetichealth/synthea|94a36583-c094-3312-b728-d4a42ec39538",
+            "display": "MELROSE INTERNAL MEDICINE ASSOC PC"
+          }
+        },
+        {
+          "resourceType": "Procedure",
+          "id": "01573895-dbf5-29c6-f57e-947aa9a6c182",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-procedure"
+            ]
+          },
+          "status": "completed",
+          "code": {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "710824005",
+                "display": "Assessment of health and social care needs (procedure)"
+              }
+            ],
+            "text": "Assessment of health and social care needs (procedure)"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "performedPeriod": {
+            "start": "2019-07-25T07:59:19-07:00",
+            "end": "2019-07-25T08:42:04-07:00"
+          },
+          "location": {
+            "reference": "Location?identifier=https://github.com/synthetichealth/synthea|94a36583-c094-3312-b728-d4a42ec39538",
+            "display": "MELROSE INTERNAL MEDICINE ASSOC PC"
+          }
+        },
+        {
+          "resourceType": "Procedure",
+          "id": "01573895-dbf5-29c6-cf88-7d5ebc43886c",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-procedure"
+            ]
+          },
+          "status": "completed",
+          "code": {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "710841007",
+                "display": "Assessment of anxiety (procedure)"
+              }
+            ],
+            "text": "Assessment of anxiety (procedure)"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "performedPeriod": {
+            "start": "2019-07-25T08:42:04-07:00",
+            "end": "2019-07-25T09:11:38-07:00"
+          },
+          "location": {
+            "reference": "Location?identifier=https://github.com/synthetichealth/synthea|94a36583-c094-3312-b728-d4a42ec39538",
+            "display": "MELROSE INTERNAL MEDICINE ASSOC PC"
+          }
+        },
+        {
+          "resourceType": "Procedure",
+          "id": "01573895-dbf5-29c6-7d75-14f4a27c7513",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-procedure"
+            ]
+          },
+          "status": "completed",
+          "code": {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "171207006",
+                "display": "Depression screening (procedure)"
+              }
+            ],
+            "text": "Depression screening (procedure)"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "performedPeriod": {
+            "start": "2019-07-25T09:11:38-07:00",
+            "end": "2019-07-25T09:25:48-07:00"
+          },
+          "location": {
+            "reference": "Location?identifier=https://github.com/synthetichealth/synthea|94a36583-c094-3312-b728-d4a42ec39538",
+            "display": "MELROSE INTERNAL MEDICINE ASSOC PC"
+          }
+        },
+        {
+          "resourceType": "Procedure",
+          "id": "01573895-dbf5-29c6-f709-0d263d365d12",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-procedure"
+            ]
+          },
+          "status": "completed",
+          "code": {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "171207006",
+                "display": "Depression screening (procedure)"
+              }
+            ],
+            "text": "Depression screening (procedure)"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "performedPeriod": {
+            "start": "2019-07-25T09:25:48-07:00",
+            "end": "2019-07-25T09:53:05-07:00"
+          },
+          "location": {
+            "reference": "Location?identifier=https://github.com/synthetichealth/synthea|94a36583-c094-3312-b728-d4a42ec39538",
+            "display": "MELROSE INTERNAL MEDICINE ASSOC PC"
+          }
+        },
+        {
+          "resourceType": "Procedure",
+          "id": "01573895-dbf5-29c6-85b7-549a95d0366e",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-procedure"
+            ]
+          },
+          "status": "completed",
+          "code": {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "715252007",
+                "display": "Depression screening using Patient Health Questionnaire Nine Item score (procedure)"
+              }
+            ],
+            "text": "Depression screening using Patient Health Questionnaire Nine Item score (procedure)"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "performedPeriod": {
+            "start": "2019-07-25T09:53:05-07:00",
+            "end": "2019-07-25T10:16:35-07:00"
+          },
+          "location": {
+            "reference": "Location?identifier=https://github.com/synthetichealth/synthea|94a36583-c094-3312-b728-d4a42ec39538",
+            "display": "MELROSE INTERNAL MEDICINE ASSOC PC"
+          }
+        },
+        {
+          "resourceType": "Procedure",
+          "id": "01573895-dbf5-29c6-254e-b50804989f3b",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-procedure"
+            ]
+          },
+          "status": "completed",
+          "code": {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "428211000124100",
+                "display": "Assessment of substance use (procedure)"
+              }
+            ],
+            "text": "Assessment of substance use (procedure)"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "performedPeriod": {
+            "start": "2019-07-25T10:16:35-07:00",
+            "end": "2019-07-25T10:27:07-07:00"
+          },
+          "location": {
+            "reference": "Location?identifier=https://github.com/synthetichealth/synthea|94a36583-c094-3312-b728-d4a42ec39538",
+            "display": "MELROSE INTERNAL MEDICINE ASSOC PC"
+          }
+        },
+        {
+          "resourceType": "Procedure",
+          "id": "01573895-dbf5-29c6-d848-364bbba48eff",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-procedure"
+            ]
+          },
+          "status": "completed",
+          "code": {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "763302001",
+                "display": "Assessment using Alcohol Use Disorders Identification Test - Consumption (procedure)"
+              }
+            ],
+            "text": "Assessment using Alcohol Use Disorders Identification Test - Consumption (procedure)"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "performedPeriod": {
+            "start": "2019-07-25T10:27:07-07:00",
+            "end": "2019-07-25T10:47:52-07:00"
+          },
+          "location": {
+            "reference": "Location?identifier=https://github.com/synthetichealth/synthea|94a36583-c094-3312-b728-d4a42ec39538",
+            "display": "MELROSE INTERNAL MEDICINE ASSOC PC"
+          }
+        },
+        {
+          "resourceType": "Procedure",
+          "id": "01573895-dbf5-29c6-c5bd-412b700ceaab",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-procedure"
+            ]
+          },
+          "status": "completed",
+          "code": {
+            "coding": [
+              {
+                "system": "http://snomed.info/sct",
+                "code": "103697008",
+                "display": "Patient referral for dental care (procedure)"
+              }
+            ],
+            "text": "Patient referral for dental care (procedure)"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "performedPeriod": {
+            "start": "2019-07-25T10:47:52-07:00",
+            "end": "2019-07-25T11:01:20-07:00"
+          },
+          "location": {
+            "reference": "Location?identifier=https://github.com/synthetichealth/synthea|94a36583-c094-3312-b728-d4a42ec39538",
+            "display": "MELROSE INTERNAL MEDICINE ASSOC PC"
+          }
+        }
+      ],
+      "DiagnosticReport": [
+        {
+          "resourceType": "DiagnosticReport",
+          "id": "01573895-dbf5-29c6-1de7-1cb038b0bda8",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-diagnosticreport-lab"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/v2-0074",
+                  "code": "LAB",
+                  "display": "Laboratory"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "57698-3",
+                "display": "Lipid panel with direct LDL - Serum or Plasma"
+              }
+            ],
+            "text": "Lipid panel with direct LDL - Serum or Plasma"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T07:59:19-07:00",
+          "issued": "2019-07-25T07:59:19.988-07:00",
+          "performer": [
+            {
+              "reference": "Organization?identifier=https://github.com/synthetichealth/synthea|8d5880eb-1dd8-31ea-b7c5-21709f3bb341",
+              "display": "MELROSE INTERNAL MEDICINE ASSOC PC"
+            }
+          ],
+          "result": [
+            {
+              "reference": "urn:uuid:01573895-dbf5-29c6-ec65-53ce93489b08",
+              "display": "Cholesterol [Mass/volume] in Serum or Plasma"
+            },
+            {
+              "reference": "urn:uuid:01573895-dbf5-29c6-e755-b8c16d78c3f7",
+              "display": "Triglyceride [Mass/volume] in Serum or Plasma"
+            },
+            {
+              "reference": "urn:uuid:01573895-dbf5-29c6-fef7-a2ba8817ce12",
+              "display": "Cholesterol in LDL [Mass/volume] in Serum or Plasma by Direct assay"
+            },
+            {
+              "reference": "urn:uuid:01573895-dbf5-29c6-5a78-159d52470763",
+              "display": "Cholesterol in HDL [Mass/volume] in Serum or Plasma"
+            }
+          ]
+        },
+        {
+          "resourceType": "DiagnosticReport",
+          "id": "01573895-dbf5-29c6-f096-ec6db5824e1b",
+          "status": "final",
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "69737-5",
+                "display": "Generalized anxiety disorder 7 item (GAD-7)"
+              }
+            ],
+            "text": "Generalized anxiety disorder 7 item (GAD-7)"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T09:11:38-07:00",
+          "issued": "2019-07-25T09:11:38.988-07:00",
+          "result": [
+            {
+              "reference": "urn:uuid:01573895-dbf5-29c6-6857-6243c15368a3",
+              "display": "Generalized anxiety disorder 7 item (GAD-7) total score [Reported.PHQ]"
+            }
+          ]
+        },
+        {
+          "resourceType": "DiagnosticReport",
+          "id": "01573895-dbf5-29c6-2a3a-9b264675285e",
+          "status": "final",
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "55757-9",
+                "display": "Patient Health Questionnaire 2 item (PHQ-2) [Reported]"
+              }
+            ],
+            "text": "Patient Health Questionnaire 2 item (PHQ-2) [Reported]"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T09:53:05-07:00",
+          "issued": "2019-07-25T09:53:05.988-07:00",
+          "result": [
+            {
+              "reference": "urn:uuid:01573895-dbf5-29c6-bf0c-cb71365a2e6f",
+              "display": "Patient Health Questionnaire 2 item (PHQ-2) total score [Reported]"
+            }
+          ]
+        },
+        {
+          "resourceType": "DiagnosticReport",
+          "id": "01573895-dbf5-29c6-deb4-832923afc0c7",
+          "status": "final",
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "44249-1",
+                "display": "PHQ-9 quick depression assessment panel [Reported.PHQ]"
+              }
+            ],
+            "text": "PHQ-9 quick depression assessment panel [Reported.PHQ]"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T10:16:35-07:00",
+          "issued": "2019-07-25T10:16:35.988-07:00",
+          "result": [
+            {
+              "reference": "urn:uuid:01573895-dbf5-29c6-bbed-3cb0f6aced99",
+              "display": "Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]"
+            }
+          ]
+        },
+        {
+          "resourceType": "DiagnosticReport",
+          "id": "01573895-dbf5-29c6-9c69-4067816b4857",
+          "status": "final",
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "72109-2",
+                "display": "Alcohol Use Disorder Identification Test - Consumption [AUDIT-C]"
+              }
+            ],
+            "text": "Alcohol Use Disorder Identification Test - Consumption [AUDIT-C]"
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T10:47:52-07:00",
+          "issued": "2019-07-25T10:47:52.988-07:00",
+          "result": [
+            {
+              "reference": "urn:uuid:01573895-dbf5-29c6-a698-27d3c791a15d",
+              "display": "Total score [AUDIT-C]"
+            }
+          ]
+        },
+        {
+          "resourceType": "DiagnosticReport",
+          "id": "1cb59a2a-a0b8-66f1-7119-4f3ca62383f0",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-diagnosticreport-note"
+            ]
+          },
+          "status": "final",
+          "category": [
+            {
+              "coding": [
+                {
+                  "system": "http://loinc.org",
+                  "code": "34117-2",
+                  "display": "History and physical note"
+                },
+                {
+                  "system": "http://loinc.org",
+                  "code": "51847-2",
+                  "display": "Evaluation + Plan note"
+                }
+              ]
+            }
+          ],
+          "code": {
+            "coding": [
+              {
+                "system": "http://loinc.org",
+                "code": "34117-2",
+                "display": "History and physical note"
+              },
+              {
+                "system": "http://loinc.org",
+                "code": "51847-2",
+                "display": "Evaluation + Plan note"
+              }
+            ]
+          },
+          "subject": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "effectiveDateTime": "2019-07-25T07:59:19-07:00",
+          "issued": "2019-07-25T07:59:19.988-07:00",
+          "performer": [
+            {
+              "reference": "Practitioner?identifier=http://hl7.org/fhir/sid/us-npi|9999958991",
+              "display": "Dr. Nicholle822 Satterfield305"
+            }
+          ],
+          "presentedForm": [
+            {
+              "contentType": "text/plain; charset=utf-8",
+              "data": "CjIwMTktMDctMjUKCiMgQ2hpZWYgQ29tcGxhaW50Ck5vIGNvbXBsYWludHMuCgojIEhpc3Rvcnkgb2YgUHJlc2VudCBJbGxuZXNzClZhbjc2MyBpcyBhIDQyIHllYXItb2xkIG5vbmhpc3BhbmljIHdoaXRlIG1hbGUuIFBhdGllbnQgaGFzIGEgaGlzdG9yeSBvZiBtZWRpY2F0aW9uIHJldmlldyBkdWUgKHNpdHVhdGlvbiksIHZpcmFsIHNpbnVzaXRpcyAoZGlzb3JkZXIpLgoKIyBTb2NpYWwgSGlzdG9yeQpQYXRpZW50IGlzIG1hcnJpZWQuIFBhdGllbnQgaGFzIG5ldmVyIHNtb2tlZC4KIFBhdGllbnQgaWRlbnRpZmllcyBhcyBoZXRlcm9zZXh1YWwuCgpQYXRpZW50IGNvbWVzIGZyb20gYSBtaWRkbGUgc29jaW9lY29ub21pYyBiYWNrZ3JvdW5kLgogUGF0aWVudCBoYXMgYSBoaWdoIHNjaG9vbCBlZHVjYXRpb24uClBhdGllbnQgY3VycmVudGx5IGhhcyBBbnRoZW0uCgojIEFsbGVyZ2llcwpObyBLbm93biBBbGxlcmdpZXMuCgojIE1lZGljYXRpb25zCk5vIEFjdGl2ZSBNZWRpY2F0aW9ucy4KCiMgQXNzZXNzbWVudCBhbmQgUGxhbgpQYXRpZW50IGlzIHByZXNlbnRpbmcgd2l0aCBtZWRpY2F0aW9uIHJldmlldyBkdWUgKHNpdHVhdGlvbiksIHN0cmVzcyAoZmluZGluZykuIAoKCiMjIFBsYW4KUGF0aWVudCB3YXMgZ2l2ZW4gdGhlIGZvbGxvd2luZyBpbW11bml6YXRpb25zOiBpbmZsdWVuemEsIHNwbGl0IHZpcnVzLCB0cml2YWxlbnQsIHBmLCB0ZCAoYWR1bHQpLCA1IGxmIHRldGFudXMgdG94b2lkLCBwcmVzZXJ2YXRpdmUgZnJlZSwgYWRzb3JiZWQsIGhlcCBhLCBhZHVsdC4gClRoZSBmb2xsb3dpbmcgcHJvY2VkdXJlcyB3ZXJlIGNvbmR1Y3RlZDoKLSBtZWRpY2F0aW9uIHJlY29uY2lsaWF0aW9uIChwcm9jZWR1cmUpCi0gYXNzZXNzbWVudCBvZiBoZWFsdGggYW5kIHNvY2lhbCBjYXJlIG5lZWRzIChwcm9jZWR1cmUpCi0gYXNzZXNzbWVudCBvZiBhbnhpZXR5IChwcm9jZWR1cmUpCi0gZGVwcmVzc2lvbiBzY3JlZW5pbmcgKHByb2NlZHVyZSkKLSBkZXByZXNzaW9uIHNjcmVlbmluZyAocHJvY2VkdXJlKQotIGRlcHJlc3Npb24gc2NyZWVuaW5nIHVzaW5nIHBhdGllbnQgaGVhbHRoIHF1ZXN0aW9ubmFpcmUgbmluZSBpdGVtIHNjb3JlIChwcm9jZWR1cmUpCi0gYXNzZXNzbWVudCBvZiBzdWJzdGFuY2UgdXNlIChwcm9jZWR1cmUpCi0gYXNzZXNzbWVudCB1c2luZyBhbGNvaG9sIHVzZSBkaXNvcmRlcnMgaWRlbnRpZmljYXRpb24gdGVzdCAtIGNvbnN1bXB0aW9uIChwcm9jZWR1cmUpCi0gcGF0aWVudCByZWZlcnJhbCBmb3IgZGVudGFsIGNhcmUgKHByb2NlZHVyZSkKVGhlIGZvbGxvd2luZyBsYWIgcmVwb3J0cyB3ZXJlIGNvbXBsZXRlZDoKLSBsaXBpZCBwYW5lbCB3aXRoIGRpcmVjdCBsZGwgLSBzZXJ1bSBvciBwbGFzbWEKLSBnZW5lcmFsaXplZCBhbnhpZXR5IGRpc29yZGVyIDcgaXRlbSAoZ2FkLTcpCi0gcGF0aWVudCBoZWFsdGggcXVlc3Rpb25uYWlyZSAyIGl0ZW0gKHBocS0yKSBbcmVwb3J0ZWRdCi0gcGhxLTkgcXVpY2sgZGVwcmVzc2lvbiBhc3Nlc3NtZW50IHBhbmVsIFtyZXBvcnRlZC5waHFdCi0gYWxjb2hvbCB1c2UgZGlzb3JkZXIgaWRlbnRpZmljYXRpb24gdGVzdCAtIGNvbnN1bXB0aW9uIFthdWRpdC1jXQo="
+            }
+          ]
+        }
+      ],
+      "Immunization": [
+        {
+          "resourceType": "Immunization",
+          "id": "01573895-dbf5-29c6-d45c-68c65beb9b0e",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-immunization"
+            ]
+          },
+          "status": "completed",
+          "vaccineCode": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/sid/cvx",
+                "code": "140",
+                "display": "Influenza, split virus, trivalent, PF"
+              }
+            ],
+            "text": "Influenza, split virus, trivalent, PF"
+          },
+          "patient": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "occurrenceDateTime": "2019-07-25T07:59:19-07:00",
+          "primarySource": true,
+          "location": {
+            "reference": "Location?identifier=https://github.com/synthetichealth/synthea|94a36583-c094-3312-b728-d4a42ec39538",
+            "display": "MELROSE INTERNAL MEDICINE ASSOC PC"
+          }
+        },
+        {
+          "resourceType": "Immunization",
+          "id": "01573895-dbf5-29c6-4250-655efa472e9c",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-immunization"
+            ]
+          },
+          "status": "completed",
+          "vaccineCode": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/sid/cvx",
+                "code": "113",
+                "display": "Td (adult), 5 Lf tetanus toxoid, preservative free, adsorbed"
+              }
+            ],
+            "text": "Td (adult), 5 Lf tetanus toxoid, preservative free, adsorbed"
+          },
+          "patient": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "occurrenceDateTime": "2019-07-25T07:59:19-07:00",
+          "primarySource": true,
+          "location": {
+            "reference": "Location?identifier=https://github.com/synthetichealth/synthea|94a36583-c094-3312-b728-d4a42ec39538",
+            "display": "MELROSE INTERNAL MEDICINE ASSOC PC"
+          }
+        },
+        {
+          "resourceType": "Immunization",
+          "id": "01573895-dbf5-29c6-95f1-f6846770a8a4",
+          "meta": {
+            "profile": [
+              "http://hl7.org/fhir/us/core/StructureDefinition/us-core-immunization"
+            ]
+          },
+          "status": "completed",
+          "vaccineCode": {
+            "coding": [
+              {
+                "system": "http://hl7.org/fhir/sid/cvx",
+                "code": "52",
+                "display": "Hep A, adult"
+              }
+            ],
+            "text": "Hep A, adult"
+          },
+          "patient": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-4ef9-cd09aecc51f6"
+          },
+          "encounter": {
+            "reference": "urn:uuid:01573895-dbf5-29c6-f885-ade2bd6537a5"
+          },
+          "occurrenceDateTime": "2019-07-25T07:59:19-07:00",
+          "primarySource": true,
+          "location": {
+            "reference": "Location?identifier=https://github.com/synthetichealth/synthea|94a36583-c094-3312-b728-d4a42ec39538",
+            "display": "MELROSE INTERNAL MEDICINE ASSOC PC"
+          }
+        }
+      ]
+    }
+  },
+  "transcript": "DR: There he is \u2014 Van O'Reilly, in the flesh. Sit down, man. It has been, what, three years?\nPT: At least. And I will be honest right up front, Doc: I am here because Shauna booked the appointment, drove me over, and is currently sitting in the parking lot making sure I do not bolt.\nDR: Married men live longer, and this is exactly why. Well, since you are captive \u2014 anything actually bothering you, or are we doing the full once-over?\nPT: Full once-over, I guess. But if I had to name things: my hands, and my head. Not the head like headaches \u2014 the head like it will not shut up.\nDR: Hands first, then. What are they doing?\nPT: Aching. The knuckles mostly. You told me a while back it was osteoarthritis, and it has been creeping. I am a picker at the distribution center \u2014 ten hours of gripping totes and scanning \u2014 and by end of shift my fingers feel like rusty hinges. Mornings they are stiff until the coffee kicks in.\nDR: How bad right now, zero to ten?\nPT: Right now, a three. End of a Friday shift, a five maybe.\nDR: Any swelling? A joint that gets hot or red? Locking up, dropping things?\nPT: No dropping, no hot or red. Just that deep ache. The naproxen helps \u2014 the over-the-counter 220s. One, maybe two a week, with food, like you said last time.\nDR: Any stomach burning with it? Black stools, anything like that?\nPT: No, none of that. I am careful. Shauna reads the warning labels out loud at me like I am on trial.\nDR: Keep her. And keep taking it with food, keep it occasional exactly like you are doing. Before you leave I will show you some hand exercises \u2014 tendon glides, and a warm soak in the morning to loosen the hinges. Boring, but they work. Now \u2014 the head that will not shut up. Tell me.\nPT: Money, mostly. Shauna's hours got cut in the spring. We have Ellie in second grade, so we are one income and change now, and I lie there at midnight running numbers. Rent, the truck, school stuff, groceries. Round and round. I am tense all day \u2014 shoulders up around my ears, snapping at guys at work over nothing. And sometimes my chest gets tight. Not pain. Tight, like a band.\nDR: Tight with exertion \u2014 climbing stairs, hauling totes? Or tight when the worry spins up?\nPT: When the worry spins up. Stairs I do all shift, no problem. It is when the numbers start going round.\nDR: That pattern matters \u2014 that sounds like anxiety, not your heart. And the forms from the lobby back it up. The worry questionnaire, the GAD-7 \u2014 you scored a 12, which lands in the moderate range. That is not Van-is-broken. That is the-load-is-real, and the alarm system is stuck in the on position.\nPT: Stuck on. Yeah. That is exactly it. It does not switch off even when nothing is wrong that exact minute.\nDR: Now, the mood questions. The short screener flagged you \u2014 a 5 \u2014 so I want to walk through the longer one together, the nine-question version, because the short one casts a wide net on purpose. Little interest or pleasure in doing things?\nPT: Not really. I still like my stuff. Ellie's soccer games. My garage projects.\nDR: Feeling down or hopeless? Sleep? Appetite? Energy?\nPT: Down, no. Sleep is thin because of the number-spinning. Appetite is fine \u2014 too fine. Energy is decent once I am moving.\nDR: So on the full version you come out at a 4, which is minimal. Here is what that tells me: your mood is holding \u2014 you still enjoy things, you are eating, functioning \u2014 but the worry channel is turned way up. Worry, not depression.\nPT: That sounds right. I am not sad. I laugh plenty. I am just braced all the time. Like waiting for a shelf to come down.\nDR: Braced is a good word. I do have to ask directly: any dark thoughts? Hurting yourself, feeling like it is not worth it?\nPT: No. God, no. I have too much to stick around for. That is half the problem \u2014 I care about all of it so much.\nDR: Loud and clear, and I am glad. So here is what I have for a stuck alarm. First, the free stuff: your body burns worry off with movement, and yours is built for it. A brisk walk after dinner, twenty or thirty minutes, most days \u2014 take Ellie on her bike. Second, a trick that sounds dumb and works: schedule the worry. Fifteen minutes, same time every evening, pen and paper, do all the budgeting then. When it starts up at midnight, you tell it \u2014 you had your slot.\nPT: Schedule the worry. Shauna is going to love that one.\nDR: Third: there is a counseling center over on Fairview that runs a sliding scale \u2014 you pay what your income allows. A few sessions to learn the tools is the most effective thing on this whole list.\nPT: Man, I do not know. Sitting in a room talking about feelings... but the sliding-scale part helps. Money being the whole problem, it would be dumb if the fix cost money. Let me look at it. I am not saying no.\nDR: Not saying no is plenty for today. And no medicines for this today either \u2014 that is not where we are, and honestly the walking might beat a pill anyway. But if the worry starts eating your sleep every night, or that chest tightness ramps up, you come back sooner and we talk options. Deal?\nPT: Deal.\nDR: Drinking okay? The form had you low \u2014 a 2 on the alcohol score.\nPT: Saturday, watching the game. Two beers, tops. Beer is not free either, Doc.\nDR: Cheapest health plan there is. Never smoked, right? Okay \u2014 exam time. Deep breaths for me... good. Blood pressure is 102 over 78 \u2014 excellent. Pulse 74, breathing 15. You are 162.1 centimeters and 73.5 kilos, which works out to a BMI just under 28 \u2014 you are actually down from where the chart had you.\nPT: That is the job. Ten hours a day walking concrete. Best gym membership I never asked for.\nDR: Heart and lungs sound great. Give me the hands \u2014 I can feel that bony fullness at a few of the knuckles, little tender when I press, but no swelling, no heat, and your grip is strong. That is the arthritis being itself, nothing angrier. Now open up for a second \u2014 you put a tooth on the intake form?\nPT: Yeah. Lower left, in the back. Twinges on cold drinks. I have not sat in a dentist's chair since Ellie was born, honestly. It kept losing the budget vote.\nDR: I can see why it is talking to you back there. I am putting in a dental referral \u2014 and the clinic I refer to runs sliding scale too, same deal as the counseling place. Teeth are health, not luxury. Do not give it another year.\nPT: If it is sliding scale, Shauna will have me in the chair by Tuesday.\nDR: Good. Your labs from last week: the cholesterol picture is mostly fine \u2014 total 157.54, LDL 101.02, triglycerides 134.84. The one soft spot is the HDL, the protective one \u2014 29.55, and we like that higher. Want to guess what raises HDL?\nPT: Let me guess. Walking after dinner.\nDR: You are my easiest patient all day. Last thing: shots. You are due for three, and we can knock them all out today. The flu vaccine. Your tetanus booster \u2014 you are overdue, and you work in a warehouse full of splinters and steel edges. And hepatitis A, which your generation mostly never got as kids.\nPT: Three needles. Shauna is going to think I got mugged in here.\nDR: Tell her it was buy-two-get-one. The nurse will do them before you go \u2014 one arm or split them up, dealer's choice. Now recap for me. What are you leaving with?\nPT: Walk after dinner. The worry gets an appointment. Actually look at the counseling place \u2014 really look, not pretend-look. Naproxen with food, hand exercises, warm soaks. The dentist. Three shots. And come back if the head gets louder.\nDR: Every item, first try. Come back in two or three months regardless, just to tell me which way the worry is trending. And Van \u2014 everything is tight and you are still coaching the budget, walking Ellie to school, and showing up here. You are doing better than you give yourself credit for.\nPT: ...Thanks, Doc. That one goes in the pocket for midnight. Alright. Send in the needles.",
+  "note": "**Subjective:** Van O'Reilly is a 42-year-old man presenting for a general adult examination, his first in several years, at his wife's insistence. Two main concerns: aching hands and persistent worry. Hands: known localized primary osteoarthritis of the hand with aching of the knuckles that has crept up gradually; worst at the end of ten-hour picker shifts at a distribution center (gripping totes, scanning) with morning stiffness that eases with activity. Pain 3/10 today, up to 5/10 after long shifts. No joint swelling, warmth, erythema, locking, or dropping objects. Naproxen sodium 220 mg once or twice weekly with food gives good relief; no dyspepsia, no melena. Stress: significant financial strain since his wife's work hours were cut \u2014 household of three with a young daughter \u2014 with nocturnal rumination over the budget, daytime muscle tension, irritability at work, and worry-associated (non-exertional) chest tightness. Stairs and heavy work provoke no symptoms. Mood is preserved: he enjoys his daughter's soccer games and garage projects, appetite and daytime energy intact; sleep is reduced by rumination. Denies hopelessness and any thoughts of self-harm. Also reports a lower-left molar sensitive to cold; no dental care in many years due to cost. ROS otherwise negative: no exertional chest pain, palpitations, dyspnea, fever, GI bleeding symptoms, or unintentional weight change. Never-smoker; alcohol about two beers on Saturdays; no other substances. Only medication: naproxen sodium 220 mg oral tablet as needed. No known allergies.\n\n**Objective:** Vitals: BP 102/78 mmHg, HR 74/min, RR 15/min, height 162.1 cm, weight 73.5 kg, BMI 27.96 kg/m2, reported pain 3/10. Exam: well-appearing, animated, in no distress. Heart regular without murmur; lungs clear. Hands with bony fullness and mild tenderness over several finger joints, without swelling, warmth, or erythema; grip strong and functional. Posterior lower-left molar tender per patient report on gross oral inspection; no facial swelling. Lipid panel: total cholesterol 157.54 mg/dL, triglycerides 134.84 mg/dL, direct LDL 101.02 mg/dL, HDL 29.55 mg/dL. Screening scores: GAD-7 total 12; PHQ-2 total 5; PHQ-9 total 4; AUDIT-C total 2.\n\n**Assessment and Plan:**\n\n### Stress with moderate anxiety symptoms\nGAD-7 of 12 (moderate) with a clear financial stressor, tension symptoms, and worry-related chest tightness; assessment of anxiety completed. Depression screening: PHQ-2 of 5 prompted full PHQ-9, which scored 4 \u2014 minimal depressive symptoms with mood, interest, and function preserved; no suicidal ideation.\n- Behavioral plan discussed: brisk 20-30 minute walks most evenings; scheduled daily worry time for budgeting.\n- Provided information for sliding-scale counseling; patient will consider \u2014 not saying no.\n- No medication initiated today; return in 2-3 months to reassess, sooner if worry disrupts sleep nightly or chest tightness escalates.\n\n### Localized primary osteoarthritis of the hand\nOccupational aggravation with a benign exam \u2014 bony changes without inflammation.\n- Continue naproxen sodium 220 mg as needed, always with food; monitor for GI symptoms.\n- Taught tendon-glide exercises and morning warm soaks; pace gripping tasks where possible.\n\n### Low HDL cholesterol\nLipid panel otherwise reassuring (total 157.54, LDL 101.02, triglycerides 134.84 mg/dL) with HDL low at 29.55 mg/dL.\n- Regular aerobic activity as above; recheck lipids at next annual visit.\n\n### Dental health\nCold-sensitive lower molar with years-long gap in dental care driven by cost.\n- Patient referral for dental care placed to a sliding-scale clinic; patient agreeable.\n\n### Medication review due\n- Medication reconciliation completed: naproxen sodium 220 mg PRN is the only agent; use pattern appropriate.\n\n### Health maintenance\n- Immunizations administered today: influenza (split virus, trivalent, preservative-free); Td (adult) booster; hepatitis A (adult).\n- Assessment of substance use and AUDIT-C (total 2) unremarkable; lifelong never-smoker.\n- Assessment of health and social care needs completed; financial strain noted with low-cost resources provided.",
+  "after_visit_summary": "Visit summary\n\nWhat we discussed\n\u2022 Stress with moderate anxiety symptoms\n\u2022 Localized primary osteoarthritis of the hand\n\u2022 Low HDL cholesterol\n\u2022 Dental health\n\u2022 Medication review due\n\u2022 Health maintenance\n\nNext steps\n\u2022 Behavioral plan discussed: brisk 20-30 minute walks most evenings; scheduled daily worry time for budgeting.\n\u2022 Provided information for sliding-scale counseling; patient will consider \u2014 not saying no.\n\u2022 No medication initiated today; return in 2-3 months to reassess, sooner if worry disrupts sleep nightly or chest tightness escalates.\n\u2022 Continue naproxen sodium 220 mg as needed, always with food; monitor for GI symptoms.\n\u2022 Taught tendon-glide exercises and morning warm soaks; pace gripping tasks where possible.\n\u2022 Regular aerobic activity as above; recheck lipids at next annual visit.\n\u2022 Patient referral for dental care placed to a sliding-scale clinic; patient agreeable.\n\u2022 Medication reconciliation completed: naproxen sodium 220 mg PRN is the only agent; use pattern appropriate.",
+  "after_visit_summary_provenance": {
+    "method": "deterministic_extractive_v1",
+    "source": "clinical_note_assessment_and_plan",
+    "review_status": "not_clinically_reviewed"
+  }
+}
