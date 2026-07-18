@@ -15,6 +15,18 @@ import './loop.css';
 class DCLogic {}
 
 const _cssCache = new Map();
+
+// The design handoff was authored at dollhouse scale (9-13px everywhere).
+// Remap font sizes upward toward a readable floor while preserving the
+// hierarchy: sizes >= 15px are design sizes and pass through untouched.
+function readableFontSize(v) {
+  const m = /^([\d.]+)px$/.exec(v);
+  if (!m) return v;
+  const size = parseFloat(m[1]);
+  if (size >= 15) return v;
+  return Math.round((size + (15 - size) * 0.4) * 2) / 2 + 'px';
+}
+
 function css(str) {
   let o = _cssCache.get(str);
   if (o) return o;
@@ -23,8 +35,9 @@ function css(str) {
     const i = decl.indexOf(':');
     if (i < 0) continue;
     const k = decl.slice(0, i).trim();
-    const v = decl.slice(i + 1).trim();
+    let v = decl.slice(i + 1).trim();
     if (!k || !v) continue;
+    if (k === 'font-size') v = readableFontSize(v);
     o[k.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = v;
   }
   _cssCache.set(str, o);

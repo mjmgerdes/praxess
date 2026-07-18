@@ -71,7 +71,7 @@
 }
 .prx-kicker {
   color: oklch(0.55 0.13 250);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   margin-bottom: 5px;
 }
@@ -88,7 +88,7 @@
   margin: 5px 0 0;
   max-width: 690px;
   color: oklch(0.48 0.022 255);
-  font-size: 11px;
+  font-size: 12.5px;
   line-height: 1.4;
 }
 .prx-model-status {
@@ -102,7 +102,7 @@
   border-radius: 9px;
   background: oklch(0.98 0.018 165);
   color: oklch(0.43 0.115 165);
-  font-size: 9px;
+  font-size: 11.5px;
   font-weight: 650;
 }
 .prx-model-status-dot {
@@ -116,7 +116,7 @@
 .prx-model-status small {
   grid-column: 2;
   color: oklch(0.56 0.035 255);
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: .025em;
   text-transform: none;
 }
@@ -132,12 +132,12 @@
   background: oklch(0.98 0.006 255);
   color: oklch(0.40 0.025 255);
   font-family: "IBM Plex Mono", monospace;
-  font-size: 9.5px;
+  font-size: 11.5px;
 }
 .prx-decision-rule-label {
   flex: 0 0 auto;
   color: oklch(0.55 0.13 250);
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 600;
 }
 .prx-decision-rule > span:nth-child(2) { flex: 1; }
@@ -146,7 +146,7 @@
   max-width: 48%;
   overflow: hidden;
   color: oklch(0.58 0.022 255);
-  font-size: 8.5px;
+  font-size: 11px;
   text-overflow: ellipsis;
   text-align: right;
   white-space: nowrap;
@@ -180,7 +180,7 @@
   gap: 8px;
   padding: 0 8px 7px;
   color: oklch(0.59 0.025 255);
-  font-size: 7.5px;
+  font-size: 10.5px;
   font-weight: 600;
 }
 .prx-rollout-axis span:nth-child(2) { grid-column: 2; }
@@ -235,7 +235,7 @@
 }
 .prx-node-label {
   color: oklch(0.56 0.04 255);
-  font-size: 7.5px;
+  font-size: 10.5px;
   font-weight: 600;
   line-height: 1.3;
 }
@@ -249,7 +249,7 @@
 .prx-state-caption {
   margin-top: 2px;
   color: oklch(0.54 0.025 255);
-  font-size: 9px;
+  font-size: 11.5px;
 }
 .prx-state-metrics {
   display: flex;
@@ -359,7 +359,7 @@
   display: block;
   margin-top: 5px;
   color: oklch(0.25 0.025 255);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 650;
   line-height: 1.22;
 }
@@ -384,7 +384,7 @@
   color: oklch(0.55 0.03 255);
   font: 7.5px/1 "IBM Plex Mono", monospace;
 }
-.prx-ev-row b { color: oklch(0.38 0.10 250); font-size: 9px; }
+.prx-ev-row b { color: oklch(0.38 0.10 250); font-size: 11.5px; }
 .prx-ev-track {
   height: 3px;
   margin-top: 4px;
@@ -402,7 +402,7 @@
 .prx-outcome-node p {
   margin: 4px 0 0;
   color: oklch(0.51 0.025 255);
-  font-size: 8.5px;
+  font-size: 11px;
   line-height: 1.22;
 }
 .prx-future-node small {
@@ -497,13 +497,13 @@
   display: block;
   margin-top: 2px;
   color: oklch(0.25 0.03 255);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.2;
 }
 .prx-execution-layer p {
   margin: 2px 0 0;
   color: oklch(0.51 0.025 255);
-  font-size: 8.5px;
+  font-size: 11px;
   line-height: 1.35;
 }
 .prx-execution-layer button {
