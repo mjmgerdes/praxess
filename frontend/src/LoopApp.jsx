@@ -668,7 +668,7 @@ class Component extends DCLogic {
 
 
 
-export default function LoopApp() {
+export default function LoopApp({ onBackToWorkspace }) {
   const inst = useDC(Component);
   const [showRecord, setShowRecord] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
@@ -783,8 +783,10 @@ export default function LoopApp() {
   
   <header style={css(`display:flex;align-items:center;gap:24px;padding:0 24px;height:60px;background:#fff;border-bottom:1px solid oklch(0.91 0.008 255);flex-shrink:0;z-index:5;`)}>
     <div style={css(`display:flex;align-items:center;gap:11px;`)}>
-      <img src="/praxess_favicon.png" alt="" aria-hidden="true" style={css(`width:30px;height:30px;border-radius:8px;object-fit:cover;box-shadow:0 0 0 1px oklch(0.89 0.025 250),0 3px 9px oklch(0.45 0.12 250 / .16);`)} />
-      <span style={css(`font-weight:700;font-size:17px;letter-spacing:-0.01em;`)}>Praxess</span>
+      <button type="button" className="prx-case-home" onClick={onBackToWorkspace} aria-label="Back to case workspace" title="Back to case workspace">
+        <img src="/praxess_favicon.png" alt="" aria-hidden="true" />
+        <span>Praxess</span>
+      </button>
       <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);border:1px solid oklch(0.9 0.008 255);border-radius:5px;padding:2px 6px;`)}>Closed-loop PA agent</span>
     </div>
     <div style={css(`width:1px;height:26px;background:oklch(0.91 0.008 255);`)}></div>
