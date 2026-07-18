@@ -1,0 +1,18 @@
+[project]
+name = "praxess-engine"
+version = "0.1.0"
+description = "Praxess conversation-grounded prior-auth action model — Python/FastAPI engine"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7",
+    "anthropic>=0.40",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
