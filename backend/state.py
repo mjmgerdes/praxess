@@ -244,6 +244,139 @@ def get_session(session_id: str = "default") -> dict[str, Any] | None:
     return _SESSIONS.get(session_id)
 
 
+def analyze_transcript(
+    transcript: str,
+    *,
+    note: str = "",
+    session_id: str = "default",
+) -> dict[str, Any]:
+    """Analyze a custom (recorded) transcript against the lumbar MRI policy.
+
+    If ANTHROPIC_API_KEY is set, uses live Claude mining.
+    Otherwise performs lightweight keyword extraction so the demo works without a key.
+    """
+    enc_id = f"custom::{session_id}"
+    layers: dict[str, Any] = {
+        "id": enc_id,
+        "transcript": transcript,
+        "note": note or "",
+        "fhir": {"text_blob": "", "resources": []},
+        "metadata": {
+            "date": "",
+            "visit_title": "Recorded conversation",
+            "patient_name": "Recorded patient",
+        },
+    }
+
+    from mine import live_mine_available
+
+    if live_mine_available():
+        from mine import live_mine
+        raw = live_mine(layers)
+    else:
+        raw = _keyword_mine(transcript, note, enc_id)
+
+    state = enrich_state(raw, layers)
+    state["encounter_id"] = enc_id
+    state["session_id"] = session_id
+    state["transcript"] = transcript
+    state["note"] = note or ""
+    state["fhir_text"] = ""
+    state["custom_recording"] = True
+    _SESSIONS[session_id] = state
+    return state
+
+
+def _keyword_mine(transcript: str, note: str, enc_id: str) -> dict[str, Any]:
+    """Simple keyword heuristic when no API key is available.
+
+    Marks criteria as conversation_enriched when key phrases are found in the
+    transcript, documented when they also appear in the note, else unknown.
+    Returns a raw belief-state dict compatible with enrich_state.
+    """
+    policy = load_policy()
+    tx = transcript.lower()
+    nt = (note or "").lower()
+
+    # Keyword signals per criterion — (transcript_keywords, note_keywords)
+    _signals: dict[str, tuple[list[str], list[str]]] = {
+        "symptom_duration": (
+            ["week", "month", "year", "long", "since", "started", "ago"],
+            ["week", "month", "duration", "onset", "chronic"],
+        ),
+        "conservative_care": (
+            ["physic", "pt ", "physical therapy", "walk", "heat", "ice", "stretch", "exercise", "modif"],
+            ["physical therapy", "conservative", "exercise", "modif"],
+        ),
+        "nsaid_trial": (
+            ["ibuprofen", "naproxen", "motrin", "advil", "anti-inflam", "nsaid", "pain med", "tylenol"],
+            ["ibuprofen", "naproxen", "nsaid", "analgesic"],
+        ),
+        "no_red_flags": (
+            ["no bowel", "no bladder", "no fever", "no weakness", "no numbness", "no weight"],
+            ["red flag", "no bowel", "no bladder", "neurolog"],
+        ),
+        "functional_limitation": (
+            ["work", "sit", "walk", "stand", "lift", "daily", "adl", "chair", "limit", "hurt"],
+            ["functional", "adl", "work", "activity"],
+        ),
+    }
+
+    criteria = []
+    for c in policy["criteria"]:
+        cid = c["id"]
+        tx_keys, nt_keys = _signals.get(cid, ([], []))
+        in_tx = any(k in tx for k in tx_keys)
+        in_nt = any(k in nt for k in nt_keys)
+
+        if in_nt:
+            status = "documented"
+            conf = 0.7
+            summary = "Keyword match in note — review evidence spans."
+            evidence = [{"source_layer": "note", "quoted_span": _first_sentence_with(nt, nt_keys),
+                         "source_location": "note text", "supports": "keyword match"}]
+        elif in_tx:
+            status = "conversation_enriched"
+            conf = 0.55
+            summary = "Keyword match in transcript — not yet in note."
+            evidence = [{"source_layer": "transcript", "quoted_span": _first_sentence_with(tx, tx_keys),
+                         "source_location": "transcript", "supports": "keyword match"}]
+        else:
+            status = "unknown"
+            conf = 0.0
+            summary = "No evidence found in transcript or note."
+            evidence = []
+
+        criteria.append({
+            "id": cid,
+            "label": c["label"],
+            "status": status,
+            "confidence": conf,
+            "summary": summary,
+            "evidence": evidence,
+            "artifact": None,
+        })
+
+    return {
+        "encounter_id": enc_id,
+        "fixture_key": None,
+        "policy_id": policy["id"],
+        "service_requested": policy["service"],
+        "demo_headline": "Keyword extraction — set ANTHROPIC_API_KEY for full Claude mining.",
+        "criteria": criteria,
+        "fhir_gap_callout": None,
+        "packet_draft": {"title": "Draft packet", "status": "not_started", "facts": []},
+    }
+
+
+def _first_sentence_with(text: str, keywords: list[str]) -> str:
+    """Return first sentence containing any keyword, trimmed to 120 chars."""
+    for sent in text.replace("\n", " ").split(". "):
+        if any(k in sent for k in keywords):
+            return sent.strip()[:120]
+    return text[:80]
+
+
 def apply_decision(
     *,
     session_id: str,

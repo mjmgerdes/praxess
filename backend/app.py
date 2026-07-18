@@ -13,7 +13,7 @@ from actions import pending_artifacts
 from loader import PRIMARY_ENCOUNTER_ID, list_encounters, load_policy
 from log import read_tuples
 from mine import live_mine_available
-from state import analyze_encounter, apply_decision, default_encounter_id, get_session
+from state import analyze_encounter, analyze_transcript, apply_decision, default_encounter_id, get_session
 
 app = FastAPI(
     title="Praxess",
@@ -63,7 +63,31 @@ def encounters() -> dict[str, Any]:
     }
 
 
-@app.post("/api/analyze")
+class AnalyzeTranscriptRequest(BaseModel):
+    transcript: str
+    note: Optional[str] = ""
+    session_id: str = "default"
+
+
+@app.post("/api/analyze_transcript")
+def analyze_transcript_endpoint(req: AnalyzeTranscriptRequest) -> dict[str, Any]:
+    if not req.transcript or len(req.transcript.strip()) < 20:
+        raise HTTPException(status_code=400, detail="transcript must be at least 20 characters")
+    try:
+        state = analyze_transcript(
+            req.transcript.strip(),
+            note=req.note or "",
+            session_id=req.session_id,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    return {
+        "state": state,
+        "pending_artifacts": pending_artifacts(state),
+        "tuples": read_tuples(20),
+    }
+
+
 def analyze(req: AnalyzeRequest) -> dict[str, Any]:
     try:
         if req.live_mine and not live_mine_available():
