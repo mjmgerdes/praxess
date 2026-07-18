@@ -85,6 +85,8 @@ class Component extends DCLogic {
     liveTranscript: null,      // inline-recorded transcript (Abhay's inline record flow)
     liveNote: null,
     liveGapCallout: null,
+    addendumText: `During the encounter, the patient reported using ibuprofen with good effect until the supply ran out several months ago, alongside walking and hot showers for symptom relief. The exact duration of this self-directed conservative care was not established during this visit.`,
+    addendumEditing: false,
     visits: [],                // dated encounters from /api/encounters
     selectedVisitId: null,     // visit whose transcript is being viewed
     analyzedVisitId: null,     // visit the current case state was analyzed from
@@ -562,6 +564,11 @@ class Component extends DCLogic {
 
       addStatus, addStatusColor, addStatusBg, addStatusBorder,
       addendumPending: !s.addendumApproved, addendumDone: s.addendumApproved,
+      addendumEditing: this.state.addendumEditing,
+      addendumText: this.state.addendumText,
+      addendumEdit: () => this.setState({ addendumEditing: true }),
+      addendumCancelEdit: () => this.setState({ addendumEditing: false }),
+      addendumSaveEdit: (text) => this.setState({ addendumText: text, addendumEditing: false }),
 
       patientAnswered: s.patientAnswered, patientPending: !s.patientAnswered,
       outreachPending: !s.outreachApproved && !s.patientAnswered,
@@ -728,6 +735,7 @@ class Component extends DCLogic {
 export default function LoopApp({ onBackToWorkspace }) {
   const inst = useDC(Component);
   const [showRecord, setShowRecord] = useState(false)
+  const [addendumDraft, setAddendumDraft] = useState('')
   const [analyzing, setAnalyzing] = useState(false)
 
   // Recording state (inline in encounter page) — one-button flow.
@@ -1245,7 +1253,16 @@ export default function LoopApp({ onBackToWorkspace }) {
             <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:${V.addStatusColor};background:${V.addStatusBg};border:1px solid ${V.addStatusBorder};border-radius:20px;padding:3px 10px;`)}>{V.addStatus}</span>
           </div>
           <div style={css(`padding:20px 18px;`)}>
-            <p style={css(`margin:0;font-size:15px;line-height:1.7;color:oklch(0.3 0.02 258);border-left:3px solid oklch(0.55 0.13 250);padding-left:16px;`)}>During the encounter, the patient <span style={css(`background:oklch(0.95 0.03 250);border-radius:3px;padding:0 3px;`)}>reported</span> using ibuprofen with good effect until the supply ran out several months ago, alongside walking and hot showers for symptom relief. The exact duration of this self-directed conservative care was not established during this visit.</p>
+            {(V.addendumEditing) ? (
+              <textarea
+                autoFocus
+                value={addendumDraft}
+                onChange={e => setAddendumDraft(e.target.value)}
+                style={css(`width:100%;min-height:110px;font-size:15px;line-height:1.7;color:oklch(0.3 0.02 258);border:1.5px solid oklch(0.55 0.13 250);border-radius:8px;padding:12px 14px;font-family:'IBM Plex Sans',system-ui,sans-serif;resize:vertical;outline:none;box-sizing:border-box;background:oklch(0.985 0.01 250);`)}
+              />
+            ) : (
+              <p style={css(`margin:0;font-size:15px;line-height:1.7;color:oklch(0.3 0.02 258);border-left:3px solid oklch(0.55 0.13 250);padding-left:16px;`)}>{V.addendumText}</p>
+            )}
 
             <div style={css(`margin-top:18px;display:flex;flex-direction:column;gap:8px;`)}>
               <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);`)}>Provenance</span>
@@ -1262,12 +1279,24 @@ export default function LoopApp({ onBackToWorkspace }) {
           </div>
 
           <div style={css(`padding:14px 18px;border-top:1px solid oklch(0.93 0.006 258);display:flex;gap:10px;background:oklch(0.985 0.004 255);`)}>
-            {(V.addendumPending) ? (<>
+            {(V.addendumEditing) ? (<>
+              <button
+                onClick={() => { V.addendumSaveEdit(addendumDraft); }}
+                style={css(`flex:1;padding:11px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;`)}>
+                Save changes
+              </button>
+              <button
+                onClick={() => { V.addendumCancelEdit(); setAddendumDraft(''); }}
+                style={css(`padding:11px 18px;border-radius:9px;border:1px solid oklch(0.88 0.01 255);background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:oklch(0.4 0.02 258);cursor:pointer;`)}>
+                Cancel
+              </button>
+            </>) : null}
+            {(V.addendumPending && !V.addendumEditing) ? (<>
               <button onClick={V.approveAddendum} style={css(`flex:1;padding:11px;border-radius:9px;border:none;background:oklch(0.55 0.11 155);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;`)}>✓ Approve &amp; add to record</button>
-              <button style={css(`padding:11px 18px;border-radius:9px;border:1px solid oklch(0.88 0.01 255);background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:oklch(0.4 0.02 258);cursor:pointer;`)}>Edit</button>
+              <button onClick={() => { setAddendumDraft(V.addendumText); V.addendumEdit(); }} style={css(`padding:11px 18px;border-radius:9px;border:1px solid oklch(0.88 0.01 255);background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:oklch(0.4 0.02 258);cursor:pointer;`)}>Edit</button>
               <button style={css(`padding:11px 18px;border-radius:9px;border:1px solid oklch(0.88 0.01 255);background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:oklch(0.55 0.02 258);cursor:pointer;`)}>Dismiss</button>
             </>) : null}
-            {(V.addendumDone) ? (<>
+            {(V.addendumDone && !V.addendumEditing) ? (<>
               <div style={css(`flex:1;display:flex;align-items:center;gap:10px;font-size:13px;color:oklch(0.5 0.09 155);font-weight:500;`)}><span style={css(`width:20px;height:20px;border-radius:50%;background:oklch(0.55 0.11 155);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;`)}>✓</span>Clinician-reviewed · now payer-visible in the packet</div>
               <button onClick={V.goDecision} style={css(`padding:11px 18px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;`)}>Next action →</button>
             </>) : null}
