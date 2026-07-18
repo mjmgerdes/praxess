@@ -648,9 +648,7 @@ export default function LoopApp() {
   
   <header style={css(`display:flex;align-items:center;gap:24px;padding:0 24px;height:60px;background:#fff;border-bottom:1px solid oklch(0.91 0.008 255);flex-shrink:0;z-index:5;`)}>
     <div style={css(`display:flex;align-items:center;gap:11px;`)}>
-      <div style={css(`width:26px;height:26px;border-radius:7px;background:oklch(0.45 0.12 255);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px oklch(0.93 0.03 250);`)}>
-        <div style={css(`width:9px;height:9px;border-radius:50%;border:2px solid #fff;`)}></div>
-      </div>
+      <img src="/praxess_favicon.png" alt="" aria-hidden="true" style={css(`width:30px;height:30px;border-radius:8px;object-fit:cover;box-shadow:0 0 0 1px oklch(0.89 0.025 250),0 3px 9px oklch(0.45 0.12 250 / .16);`)} />
       <span style={css(`font-weight:700;font-size:17px;letter-spacing:-0.01em;`)}>Praxess</span>
       <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);border:1px solid oklch(0.9 0.008 255);border-radius:5px;padding:2px 6px;`)}>Closed-loop PA agent</span>
     </div>
