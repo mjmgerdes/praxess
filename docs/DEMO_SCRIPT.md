@@ -25,6 +25,9 @@ Click **Approve** → point at the readiness bar moving and C4 turning green.
 **05 · Patient question (~35s)** — back to decision engine → "Execute · Send question"
 > "One criterion left: physical therapy — never discussed in the visit, so it's *unknown*, not *no*. The re-planned action is the smallest one that can change the case: one targeted question to the patient. No policy interpretation asked of him."
 
+*(branch build adds the outreach beat here)* — pick the channel:
+> "Outreach is automated — Twilio text, or a voice call with an ElevenLabs agent — but never autonomous: Praxess drafts it, the clinician gives the go-ahead, and until then the patient's phone shows nothing sent. His answer comes back patient-reported either way."
+
 Click **Simulate patient reply** ("~8 weeks at Metro Physical Therapy, Jan–Mar").
 > "His answer is stored as patient-reported. It does **not** auto-satisfy the criterion — but it changes the world: Praxess now knows where the record lives, so the next best action becomes *request the record from Metro PT*. That flip — ask → retrieve — is the world model replanning."
 

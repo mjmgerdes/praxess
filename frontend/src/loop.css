@@ -13,3 +13,24 @@
 
 /* Scoped to the loop UI: neutralize the classic app's global heading font (index.css sets Fraunces serif) */
 .prx-loop h1, .prx-loop h2, .prx-loop h3, .prx-loop h4 { font-family: inherit; }
+
+/* ---- motion + interaction polish (ported vocabulary from praxigen; Emil-fast) ---- */
+
+/* Cinematic shell entrance, once on load (praxigen pgPageInSoft). */
+@keyframes prx-shell-in { 0% { opacity: 0; transform: scale(1.012); filter: blur(5px); } 100% { opacity: 1; transform: scale(1); filter: blur(0); } }
+.prx-loop { animation: prx-shell-in .55s cubic-bezier(0.25,1,0.5,1) both; }
+
+/* Voice-call equalizer bars (patient outreach, voice channel). */
+@keyframes prx-eq { 0%,100% { transform: scaleY(0.45); } 50% { transform: scaleY(1); } }
+.prx-eq { animation: prx-eq 1s ease-in-out infinite; transform-origin: bottom; }
+
+/* Tactile controls: fast lift on hover, physical push on press, visible focus. */
+.prx-loop button { transition: transform .14s cubic-bezier(0.25,1,0.5,1), box-shadow .14s cubic-bezier(0.25,1,0.5,1), background .14s, border-color .14s, color .14s; }
+.prx-loop button:hover { transform: translateY(-1px); }
+.prx-loop button:active { transform: translateY(0) scale(0.985); }
+.prx-loop button:focus-visible { outline: 2px solid oklch(0.45 0.12 255); outline-offset: 2px; }
+
+/* Reduced motion: reveal instantly, hold still. Non-negotiable. */
+@media (prefers-reduced-motion: reduce) {
+  .prx-loop, .prx-loop * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}

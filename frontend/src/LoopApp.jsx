@@ -5,6 +5,7 @@
 // mechanically from the spec's HTML. Pixel fidelity comes from the spec's own
 // inline oklch() styles, parsed at runtime by css().
 import React, { useReducer, useRef } from 'react';
+import CaseConstellation from './CaseConstellation.jsx';
 import './loop.css';
 
 // ---- tiny runtime the verbatim class needs (in place of the .dc runtime) ----
@@ -49,6 +50,8 @@ class Component extends DCLogic {
     steps: {
       addendumApproved: false,
       patientAsked: false,
+      outreachChannel: 'sms',    // sms | voice | link — how the question reaches the patient
+      outreachApproved: false,   // HITL go-ahead: nothing sends without it
       patientAnswered: false,
       recordRequested: false,
       recordReceived: false,
@@ -293,6 +296,7 @@ class Component extends DCLogic {
     // exec log
     const log = [{ text: 'Encounter recorded, transcribed, analyzed against payer criteria', time: '09:14', color: 'oklch(0.55 0.13 250)' }];
     if (s.addendumApproved) log.push({ text: 'Addendum approved \u2192 C4 documented (clinician-reviewed)', time: '09:21', color: 'oklch(0.55 0.11 155)' });
+    if (s.outreachApproved) log.push({ text: 'Outreach approved (human go-ahead) \u2192 question dispatched via ' + ({ sms: 'Twilio SMS', voice: 'Twilio voice + ElevenLabs', link: 'secure link' }[s.outreachChannel]), time: '10:41', color: 'oklch(0.55 0.13 250)' });
     if (s.patientAnswered) log.push({ text: 'Patient response received \u2192 C5 patient-reported', time: '11:03', color: 'oklch(0.65 0.09 70)' });
     if (s.recordReceived) log.push({ text: 'Metro PT record verified \u2192 C5 documented', time: '14:47', color: 'oklch(0.55 0.11 155)' });
     if (s.packetGenerated) log.push({ text: 'Provenance-backed packet generated \u00b7 review-ready', time: '14:52', color: 'oklch(0.55 0.13 250)' });
@@ -463,6 +467,15 @@ class Component extends DCLogic {
       addendumPending: !s.addendumApproved, addendumDone: s.addendumApproved,
 
       patientAnswered: s.patientAnswered, patientPending: !s.patientAnswered,
+      outreachPending: !s.outreachApproved && !s.patientAnswered,
+      outreachApproved: s.outreachApproved,
+      awaitingReply: s.outreachApproved && !s.patientAnswered,
+      chanSms: s.outreachChannel === 'sms', chanVoice: s.outreachChannel === 'voice', chanLink: s.outreachChannel === 'link',
+      chanLabel: { sms: 'SMS · Twilio', voice: 'Voice call · Twilio + ElevenLabs', link: 'Secure link' }[s.outreachChannel],
+      pickSms: () => this.set({ outreachChannel: 'sms' }),
+      pickVoice: () => this.set({ outreachChannel: 'voice' }),
+      pickLink: () => this.set({ outreachChannel: 'link' }),
+      approveOutreach: () => { this.set({ outreachApproved: true }); },
 
       recStatusLabel, recStatusColor, recStatusBg, recStatusBorder,
       recordPending: !s.recordReceived, recordDone: s.recordReceived,
@@ -526,6 +539,16 @@ class Component extends DCLogic {
 export default function LoopApp() {
   const inst = useDC(Component);
   const V = inst.renderVals();
+  const steps = inst.state.steps;
+  // Source-node colors track the evidence state: verified sources green,
+  // the patient channel amber once his report is in, payer policy brand blue.
+  const constellationColors = {
+    transcript: '#3f8f63',
+    'clinical note': '#3f8f63',
+    'FHIR chart': '#3f8f63',
+    patient: steps.patientAnswered ? '#c08a3e' : '#9aa1ad',
+    'payer policy': '#4059c8',
+  };
   return (
     <>
 <div className="prx-loop" style={css(`height:100vh;display:flex;flex-direction:column;background:oklch(0.985 0.005 245);font-family:'IBM Plex Sans',system-ui,sans-serif;color:oklch(0.30 0.03 258);overflow:hidden;`)}>
@@ -642,7 +665,7 @@ export default function LoopApp() {
 
       
       {(V.isEncounter) ? (<>
-      <div style={css(`animation:prx-in .3s ease both;`)}>
+      <div style={css(`animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;`)}>
         <div style={css(`display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;`)}>
           <div>
             <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;`)}>01 · Encounter capture</div>
@@ -701,7 +724,7 @@ export default function LoopApp() {
 
       
       {(V.isWorld) ? (<>
-      <div style={css(`animation:prx-in .3s ease both;`)}>
+      <div style={css(`animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;`)}>
         <div style={css(`display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;`)}>
           <div>
             <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;`)}>02 · World model</div>
@@ -711,6 +734,13 @@ export default function LoopApp() {
           <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.6 0.015 258);text-align:right;line-height:1.7;`)}>
             <div>state_version&nbsp;·&nbsp;{V.stateVersion}</div>
             <div>last_event&nbsp;·&nbsp;{V.lastEvent}</div>
+          </div>
+        </div>
+
+        <div style={css(`background:#fff;border:1px solid oklch(0.91 0.008 255);border-radius:14px;overflow:hidden;margin-bottom:18px;position:relative;`)}>
+          <CaseConstellation height={280} statusColors={constellationColors} />
+          <div style={css(`position:absolute;left:16px;bottom:12px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.6 0.015 258);line-height:1.6;`)}>
+            every fact is a node bound to its source<br/>drag to spin · the state persists across observations
           </div>
         </div>
 
@@ -751,7 +781,7 @@ export default function LoopApp() {
 
       
       {(V.isDecision) ? (<>
-      <div style={css(`animation:prx-in .3s ease both;`)}>
+      <div style={css(`animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;`)}>
         <div style={css(`margin-bottom:20px;`)}>
           <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;`)}>03 · Decision engine</div>
           <h1 style={css(`margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em;`)}>Roll out · judge · decide · execute</h1>
@@ -812,7 +842,7 @@ export default function LoopApp() {
 
       
       {(V.isAddendum) ? (<>
-      <div style={css(`animation:prx-in .3s ease both;max-width:760px;`)}>
+      <div style={css(`animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;max-width:760px;`)}>
         <div style={css(`margin-bottom:20px;`)}>
           <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;`)}>04 · Clinician-approved addendum</div>
           <h1 style={css(`margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em;`)}>Draft note addendum</h1>
@@ -857,7 +887,7 @@ export default function LoopApp() {
 
       
       {(V.isPatient) ? (<>
-      <div style={css(`animation:prx-in .3s ease both;`)}>
+      <div style={css(`animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;`)}>
         <div style={css(`margin-bottom:20px;`)}>
           <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;`)}>05 · Targeted patient question</div>
           <h1 style={css(`margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em;`)}>Smallest action likely to change the case</h1>
@@ -869,13 +899,33 @@ export default function LoopApp() {
               <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);`)}>Generated question · targets C5</span>
               <p style={css(`margin:10px 0 0;font-size:16px;line-height:1.5;font-weight:500;color:oklch(0.3 0.02 258);`)}>"Have you done any physical therapy for your back — and if so, roughly where and for how long?"</p>
               <div style={css(`margin-top:14px;display:flex;align-items:center;gap:8px;font-size:12px;color:oklch(0.55 0.02 258);`)}>
-                <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;background:oklch(0.97 0.01 250);border:1px solid oklch(0.9 0.015 250);border-radius:6px;padding:3px 8px;`)}>secure link</span>
-                <span>No policy interpretation asked of the patient. One question, one tap.</span>
+                <span>No policy interpretation asked of the patient. One question, one answer.</span>
               </div>
             </div>
 
+            {(!V.patientAnswered) ? (<>
+              <div style={css(`background:#fff;border:1px solid oklch(0.91 0.008 255);border-radius:12px;padding:18px;`)}>
+                <div style={css(`display:flex;align-items:center;justify-content:space-between;`)}>
+                  <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);`)}>Automated outreach · human in the loop</span>
+                  <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:9px;color:oklch(0.62 0.015 258);border:1px solid oklch(0.9 0.008 255);border-radius:5px;padding:2px 6px;`)}>demo · simulated gateway</span>
+                </div>
+                <div style={css(`margin-top:12px;display:flex;gap:8px;`)}>
+                  <button onClick={V.pickSms} style={css(`flex:1;padding:9px 10px;border-radius:9px;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;border:1.5px solid ${V.chanSms ? 'oklch(0.45 0.12 255)' : 'oklch(0.9 0.008 255)'};background:${V.chanSms ? 'oklch(0.96 0.02 250)' : '#fff'};color:${V.chanSms ? 'oklch(0.4 0.1 255)' : 'oklch(0.45 0.02 258)'};`)}>Text message<span style={css(`display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:400;margin-top:2px;color:oklch(0.6 0.02 258);`)}>Twilio SMS · recommended</span></button>
+                  <button onClick={V.pickVoice} style={css(`flex:1;padding:9px 10px;border-radius:9px;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;border:1.5px solid ${V.chanVoice ? 'oklch(0.45 0.12 255)' : 'oklch(0.9 0.008 255)'};background:${V.chanVoice ? 'oklch(0.96 0.02 250)' : '#fff'};color:${V.chanVoice ? 'oklch(0.4 0.1 255)' : 'oklch(0.45 0.02 258)'};`)}>Voice call<span style={css(`display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:400;margin-top:2px;color:oklch(0.6 0.02 258);`)}>Twilio + ElevenLabs</span></button>
+                  <button onClick={V.pickLink} style={css(`flex:1;padding:9px 10px;border-radius:9px;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;border:1.5px solid ${V.chanLink ? 'oklch(0.45 0.12 255)' : 'oklch(0.9 0.008 255)'};background:${V.chanLink ? 'oklch(0.96 0.02 250)' : '#fff'};color:${V.chanLink ? 'oklch(0.4 0.1 255)' : 'oklch(0.45 0.02 258)'};`)}>Secure link<span style={css(`display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:400;margin-top:2px;color:oklch(0.6 0.02 258);`)}>patient portal</span></button>
+                </div>
+                {(V.outreachPending) ? (<>
+                  <p style={css(`margin:12px 0 0;font-size:12.5px;line-height:1.55;color:oklch(0.45 0.02 258);`)}>Praxess drafts the outreach; a person approves it. Nothing reaches Emory without your go-ahead, and his answer always comes back as patient-reported.</p>
+                  <button onClick={V.approveOutreach} style={css(`margin-top:12px;width:100%;padding:11px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;`)}>Approve &amp; send via {V.chanLabel}</button>
+                </>) : null}
+                {(V.awaitingReply) ? (<>
+                  <div style={css(`margin-top:12px;display:flex;align-items:center;gap:9px;font-size:12.5px;color:oklch(0.5 0.08 155);font-weight:500;`)}><span style={css(`width:16px;height:16px;border-radius:50%;background:oklch(0.6 0.11 155);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;`)}>✓</span>Approved · dispatched via {V.chanLabel} · awaiting reply</div>
+                </>) : null}
+              </div>
+            </>) : null}
+
             {(V.patientAnswered) ? (<>
-              <div style={css(`background:#fff;border:1px solid oklch(0.85 0.05 155);border-radius:12px;padding:18px;animation:prx-in .3s ease both;`)}>
+              <div style={css(`background:#fff;border:1px solid oklch(0.85 0.05 155);border-radius:12px;padding:18px;animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;`)}>
                 <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.5 0.09 155);`)}>Response received</span>
                 <p style={css(`margin:10px 0 0;font-size:15px;line-height:1.6;color:oklch(0.32 0.02 258);`)}>"I did about eight weeks of physical therapy at <strong style={css(`font-weight:600;`)}>Metro Physical Therapy</strong> earlier this year, from January through March."</p>
                 <div style={css(`margin-top:16px;background:oklch(0.985 0.004 255);border:1px solid oklch(0.93 0.006 258);border-radius:9px;padding:12px 14px;`)}>
@@ -898,12 +948,34 @@ export default function LoopApp() {
                 <div style={css(`font-size:14px;font-weight:600;margin-top:3px;`)}>Quick question from your care team</div>
               </div>
               <div style={css(`flex:1;padding:16px;display:flex;flex-direction:column;gap:12px;overflow:auto;`)}>
-                <div style={css(`font-size:13px;line-height:1.5;color:oklch(0.34 0.02 258);`)}>Have you done any physical therapy for your back? Where, and for about how long?</div>
-                {(V.patientAnswered) ? (<>
-                  <div style={css(`align-self:flex-end;max-width:85%;background:oklch(0.45 0.12 255);color:#fff;border-radius:14px 14px 4px 14px;padding:10px 13px;font-size:13px;line-height:1.5;animation:prx-in .3s ease both;`)}>~8 weeks at Metro Physical Therapy, Jan–Mar.</div>
-                  <div style={css(`align-self:center;font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.6 0.11 155);`)}>✓ sent to care team</div>
+                {(V.outreachPending) ? (<>
+                  <div style={css(`flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:oklch(0.6 0.02 258);`)}>
+                    <span style={css(`width:34px;height:34px;border-radius:50%;border:1.5px dashed oklch(0.8 0.02 255);display:flex;align-items:center;justify-content:center;font-size:14px;`)}>…</span>
+                    <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;text-align:center;line-height:1.6;`)}>nothing sent yet<br/>awaiting clinician go-ahead</span>
+                  </div>
                 </>) : null}
-                {(V.patientPending) ? (<>
+                {(V.outreachApproved && V.chanVoice) ? (<>
+                  <div style={css(`background:oklch(0.97 0.008 255);border:1px solid oklch(0.91 0.008 255);border-radius:12px;padding:12px 14px;animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;`)}>
+                    <div style={css(`display:flex;align-items:center;gap:10px;`)}>
+                      <div style={css(`display:flex;align-items:flex-end;gap:2.5px;height:16px;`)}>
+                        <span className="prx-eq" style={css(`width:3px;height:7px;border-radius:2px;background:oklch(0.45 0.12 255);`)}></span>
+                        <span className="prx-eq" style={css(`width:3px;height:14px;border-radius:2px;background:oklch(0.45 0.12 255);animation-delay:.18s;`)}></span>
+                        <span className="prx-eq" style={css(`width:3px;height:10px;border-radius:2px;background:oklch(0.45 0.12 255);animation-delay:.36s;`)}></span>
+                      </div>
+                      <div style={css(`font-size:12.5px;font-weight:600;color:oklch(0.35 0.03 258);`)}>Praxess care agent {V.patientAnswered ? '· call ended' : '· calling'}</div>
+                    </div>
+                    <div style={css(`margin-top:8px;font-size:12.5px;line-height:1.55;color:oklch(0.4 0.02 258);`)}>"Hi Emory, quick question from Dr. Reyes's office. Have you done any physical therapy for your back? Where, and for about how long?"</div>
+                    <div style={css(`margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:oklch(0.62 0.015 258);`)}>voice · ElevenLabs · consent line played first</div>
+                  </div>
+                </>) : null}
+                {(V.outreachApproved && !V.chanVoice) ? (<>
+                  <div style={css(`font-size:13px;line-height:1.5;color:oklch(0.34 0.02 258);animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;`)}>Have you done any physical therapy for your back? Where, and for about how long?</div>
+                </>) : null}
+                {(V.patientAnswered) ? (<>
+                  <div style={css(`align-self:flex-end;max-width:85%;background:oklch(0.45 0.12 255);color:#fff;border-radius:14px 14px 4px 14px;padding:10px 13px;font-size:13px;line-height:1.5;animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;`)}>~8 weeks at Metro Physical Therapy, Jan–Mar.</div>
+                  <div style={css(`align-self:center;font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.6 0.11 155);`)}>✓ captured · returned to care team as patient-reported</div>
+                </>) : null}
+                {(V.awaitingReply) ? (<>
                   <div style={css(`flex:1;`)}></div>
                   <div style={css(`display:flex;flex-direction:column;gap:8px;`)}>
                     <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.6 0.02 258);text-align:center;`)}>demo · patient replies</span>
@@ -919,7 +991,7 @@ export default function LoopApp() {
 
       
       {(V.isRecord) ? (<>
-      <div style={css(`animation:prx-in .3s ease both;max-width:640px;`)}>
+      <div style={css(`animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;max-width:640px;`)}>
         <div style={css(`margin-bottom:20px;`)}>
           <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;`)}>05b · External record request</div>
           <h1 style={css(`margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em;`)}>Verify the patient-reported PT</h1>
@@ -948,7 +1020,7 @@ export default function LoopApp() {
 
       
       {(V.isPacket) ? (<>
-      <div style={css(`animation:prx-in .3s ease both;`)}>
+      <div style={css(`animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;`)}>
         <div style={css(`display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;`)}>
           <div>
             <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;`)}>06 · Authorization packet</div>
@@ -990,7 +1062,7 @@ export default function LoopApp() {
 
       
       {(V.isLifecycle) ? (<>
-      <div style={css(`animation:prx-in .3s ease both;`)}>
+      <div style={css(`animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;`)}>
         <div style={css(`margin-bottom:22px;`)}>
           <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;`)}>07 · Submission &amp; appeals</div>
           <h1 style={css(`margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em;`)}>The loop keeps running after submission</h1>
@@ -1024,7 +1096,7 @@ export default function LoopApp() {
           <div style={css(`background:#fff;border:1px solid ${V.obsBorder};border-radius:12px;padding:18px;min-height:180px;`)}>
             <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);`)}>Observe → update → re-plan</span>
             {(V.hasResponse) ? (<>
-              <div style={css(`margin-top:12px;animation:prx-in .3s ease both;`)}>
+              <div style={css(`margin-top:12px;animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;`)}>
                 <div style={css(`display:flex;align-items:center;gap:9px;margin-bottom:12px;`)}>
                   <span style={css(`width:24px;height:24px;border-radius:7px;background:${V.obsBg};color:${V.obsColor};display:flex;align-items:center;justify-content:center;font-size:13px;`)}>{V.obsIcon}</span>
                   <span style={css(`font-size:15px;font-weight:600;color:${V.obsColor};`)}>{V.obsTitle}</span>
