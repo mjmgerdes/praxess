@@ -8,7 +8,7 @@
 import { jsPDF } from 'jspdf'
 
 // ─── DEMO CASE — single place to swap when the demo case changes ───────────
-const CASE = {
+export const CASE = {
   ref: 'PA-4471',
   patient: 'Kovacek, Emory',
   dobSex: '01/14/2004 · 22 · M',
@@ -25,7 +25,7 @@ const CASE = {
   pos: 'Outpatient imaging',
 }
 
-const CRITERIA_DESC = {
+export const CRITERIA_DESC = {
   C1: 'Low back pain persisting 6+ weeks despite conservative management.',
   C2: 'Absence of red-flag pathology (bowel/bladder dysfunction, saddle anesthesia, progressive deficit, fever, malignancy history).',
   C3: 'Current neurologic examination documented.',
@@ -36,7 +36,7 @@ const CRITERIA_DESC = {
 // Verbatim evidence bank — every quote is a verified span from the dataset
 // (transcript/note), the approved addendum, or the captured patient response.
 // [source tag, location, quote, patientReported?]
-const EVIDENCE = {
+export const EVIDENCE = {
   C1: [
     ['CLINICAL NOTE', 'Encounter note — Subjective', '"The pain is a dull band across the lower lumbar region, currently 4/10, dating to a lifting episode in college"'],
   ],

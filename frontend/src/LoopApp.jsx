@@ -8,6 +8,7 @@ import React, { useReducer, useRef, useState, useEffect, useCallback } from 'rea
 import CaseConstellation from './CaseConstellation.jsx';
 import DecisionRollout from './DecisionRollout.jsx';
 import { buildPacketPdf } from './packetPdf.js';
+import { buildAppealPdf } from './appealPdf.js';
 import { apiFetch, apiBase } from './api.js';
 import './loop.css';
 
@@ -77,6 +78,8 @@ class Component extends DCLogic {
       appealLetterApproved: false,
       p2pPrepped: false,
       appealSubmitted: false,
+      denialReason: '',          // WHY, from the payer's denial letter (provider-entered)
+      denialRef: '',             // payer's denial reference number
     },
     engine: 'connecting',      // live | offline | connecting — honest indicator of backend link
     engineCriteria: null,      // criterion_id -> status from /api/analyze_transcript
@@ -639,6 +642,24 @@ class Component extends DCLogic {
         return scored.map(x => ({ ...x, recommended: x.ev === best }));
       })(),
       approveAppealLetter: () => { this.set({ appealLetterApproved: true }); },
+      denialReason: s.denialReason,
+      denialRef: s.denialRef,
+      setDenialReason: (v) => this.set({ denialReason: v }),
+      setDenialRef: (v) => this.set({ denialRef: v }),
+      downloadAppealPdf: () => {
+        const cr = this.criteriaRaw().map(c => ({
+          id: c.id, label: c.label, packetTag: this.statusMeta(c.status).label,
+        }));
+        buildAppealPdf({
+          criteria: cr,
+          denialReason: s.denialReason,
+          denialRef: s.denialRef,
+          addendumApproved: s.addendumApproved,
+          patientAnswered: s.patientAnswered,
+          recordReceived: s.recordReceived,
+          payerRequirements: 'ACR Appropriateness Criteria — Low Back Pain, 2021, administered via eviCore; sourced from the plan’s published policy',
+        });
+      },
       prepP2P: () => { this.set({ p2pPrepped: true }); },
       submitAppeal: () => { this.set({ appealSubmitted: true }); },
       appealOverturned: () => { this.set({ payerResponse: 'approve' }); },
@@ -1509,6 +1530,31 @@ export default function LoopApp({ onBackToWorkspace }) {
               <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.55 0.12 25);`)}>appeal deadline · 14 days</span>
             </div>
 
+            {/* The denial is an observation — capture WHY from the payer's letter */}
+            <div style={css(`background:#fff;border:1px solid oklch(0.88 0.03 25);border-radius:11px;padding:14px 16px;margin-bottom:16px;`)}>
+              <div style={css(`display:flex;gap:12px;align-items:flex-start;`)}>
+                <div style={css(`flex:1;`)}>
+                  <label style={css(`display:block;font-size:12.5px;font-weight:600;color:oklch(0.34 0.02 258);margin-bottom:6px;`)}>Denial reason — from the payer's letter</label>
+                  <textarea
+                    value={V.denialReason}
+                    onChange={e => V.setDenialReason(e.target.value)}
+                    placeholder="Paste or type the payer's stated reason, e.g. “The records do not document a sufficient trial of conservative therapy.”"
+                    style={css(`width:100%;min-height:52px;border:1px solid oklch(0.9 0.01 255);border-radius:8px;padding:9px 11px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;line-height:1.5;color:oklch(0.32 0.02 258);outline:none;resize:vertical;box-sizing:border-box;`)}
+                  />
+                </div>
+                <div style={css(`width:190px;`)}>
+                  <label style={css(`display:block;font-size:12.5px;font-weight:600;color:oklch(0.34 0.02 258);margin-bottom:6px;`)}>Denial reference</label>
+                  <input
+                    value={V.denialRef}
+                    onChange={e => V.setDenialRef(e.target.value)}
+                    placeholder="e.g. MHP-2026-0718-114"
+                    style={css(`width:100%;border:1px solid oklch(0.9 0.01 255);border-radius:8px;padding:9px 11px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(0.32 0.02 258);outline:none;box-sizing:border-box;`)}
+                  />
+                  <div style={css(`margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.62 0.015 258);line-height:1.5;`)}>The letter rebuts this reason verbatim against the payer's own criteria.</div>
+                </div>
+              </div>
+            </div>
+
             <div style={css(`display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;`)}>
               {V.appealCandidates.map((c, _iA) => (<React.Fragment key={_iA}>
                 <div style={css(`background:#fff;border:1.5px solid ${c.recommended ? 'oklch(0.55 0.13 250)' : 'oklch(0.91 0.008 255)'};border-radius:11px;padding:13px 14px;`)}>
@@ -1529,7 +1575,7 @@ export default function LoopApp({ onBackToWorkspace }) {
                   <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:${V.appealLetterApproved ? 'oklch(0.45 0.1 155)' : 'oklch(0.55 0.09 65)'};background:${V.appealLetterApproved ? 'oklch(0.96 0.03 155)' : 'oklch(0.97 0.04 75)'};border:1px solid ${V.appealLetterApproved ? 'oklch(0.86 0.05 155)' : 'oklch(0.88 0.05 75)'};border-radius:20px;padding:3px 10px;`)}>{V.appealLetterApproved ? 'CLINICIAN-APPROVED' : 'AWAITING APPROVAL'}</span>
                 </div>
                 <div style={css(`padding:16px;font-size:13px;line-height:1.65;color:oklch(0.32 0.02 258);`)}>
-                  <p style={css(`margin:0 0 10px;`)}>Re: PA-4471 · MRI lumbar spine w/o contrast (72148) · denial for insufficient conservative-therapy evidence.</p>
+                  <p style={css(`margin:0 0 10px;`)}>Re: PA-4471 · MRI lumbar spine w/o contrast (72148){V.denialRef ? ` · denial ref ${V.denialRef}` : ''} · {V.denialReason ? `denial states: “${V.denialReason}”` : 'denial for insufficient conservative-therapy evidence.'}</p>
                   <p style={css(`margin:0 0 10px;`)}>The record now establishes the criterion the denial cites. The clinician-approved addendum documents self-directed conservative care: ibuprofen with good effect until the supply ran out, walking and heat <span style={css(`background:oklch(0.95 0.03 250);border-radius:3px;padding:0 3px;`)}>("ibuprofen for a while, which worked" — encounter transcript, verified span)</span>. The attached Metro Physical Therapy discharge summary verifies an <strong style={css(`font-weight:600;`)}>8-session course of physical therapy (Jan–Mar)</strong>, previously patient-reported and now record-verified. Red-flag screen and neurologic examination are documented in the clinical note.</p>
                   <p style={css(`margin:0;`)}>All five policy criteria are satisfied with source-linked evidence; we request reversal of the determination.</p>
                   <div style={css(`margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.6 0.015 258);border-top:1px dashed oklch(0.9 0.008 255);padding-top:10px;`)}>{V.appealPayerIntel}</div>
@@ -1537,10 +1583,11 @@ export default function LoopApp({ onBackToWorkspace }) {
                 <div style={css(`padding:12px 16px;border-top:1px solid oklch(0.93 0.006 258);display:flex;gap:10px;background:oklch(0.985 0.004 255);`)}>
                   {(!V.appealLetterApproved) ? (<>
                     <button onClick={V.approveAppealLetter} style={css(`flex:1;padding:10px;border-radius:9px;border:none;background:oklch(0.55 0.11 155);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;`)}>✓ Approve letter</button>
-                    <button style={css(`padding:10px 16px;border-radius:9px;border:1px solid oklch(0.88 0.01 255);background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:500;color:oklch(0.4 0.02 258);cursor:pointer;`)}>Edit</button>
+                    <button onClick={V.downloadAppealPdf} style={css(`padding:10px 16px;border-radius:9px;border:1px solid oklch(0.88 0.01 255);background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:500;color:oklch(0.4 0.02 258);cursor:pointer;`)}>Download PDF</button>
                   </>) : null}
                   {(V.appealLetterApproved && !V.appealSubmitted) ? (<>
                     <button onClick={V.submitAppeal} style={css(`flex:1;padding:10px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;`)}>File appeal with letter + records →</button>
+                    <button onClick={V.downloadAppealPdf} style={css(`padding:10px 16px;border-radius:9px;border:1px solid oklch(0.88 0.01 255);background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:500;color:oklch(0.4 0.02 258);cursor:pointer;`)}>Download PDF</button>
                   </>) : null}
                   {(V.appealSubmitted) ? (<>
                     <div style={css(`flex:1;display:flex;align-items:center;justify-content:space-between;gap:10px;`)}>
