@@ -14,6 +14,56 @@ def live_mine_available() -> bool:
     return bool(os.environ.get("ANTHROPIC_API_KEY"))
 
 
+def diarize(transcript: str) -> list[dict]:
+    """Use Claude to label speaker turns in a raw transcript.
+
+    Returns a list of {speaker: 'DR'|'PT', text: str} dicts.
+    Falls back to a single unlabeled block if Claude is unavailable or fails.
+    """
+    if not live_mine_available():
+        return [{"speaker": "DR", "text": transcript.strip()}]
+
+    try:
+        import anthropic
+    except ImportError:
+        return [{"speaker": "DR", "text": transcript.strip()}]
+
+    prompt = f"""You are a medical transcription assistant. Label each turn in the following clinical conversation as either DR (doctor/clinician) or PT (patient).
+
+Rules:
+- Return ONLY a JSON array, no other text.
+- Each element: {{"speaker": "DR" or "PT", "text": "the spoken text"}}
+- Preserve the original wording exactly.
+- Merge consecutive lines from the same speaker into one entry.
+- Infer the speaker from context: clinical questions/assessments = DR, symptoms/history/responses = PT.
+
+Transcript:
+{transcript}
+
+JSON array:"""
+
+    client = anthropic.Anthropic()
+    msg = client.messages.create(
+        model=os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-20250514"),
+        max_tokens=4096,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    text = next((b.text for b in msg.content if getattr(b, "type", None) == "text"), None)
+    if text is None:
+        return [{"speaker": "DR", "text": transcript.strip()}]
+    text = text.strip()
+    start = text.find("[")
+    end = text.rfind("]")
+    if start < 0 or end < 0:
+        return [{"speaker": "DR", "text": transcript.strip()}]
+    result = json.loads(text[start : end + 1])
+    # Normalise speaker labels
+    for item in result:
+        spk = str(item.get("speaker", "DR")).upper()
+        item["speaker"] = "PT" if spk.startswith("P") else "DR"
+    return result
+
+
 def live_mine(layers: dict[str, Any]) -> dict[str, Any]:
     """Mine criteria evidence with Claude; unverifiable spans are stripped by verify."""
     if not live_mine_available():
@@ -85,7 +135,9 @@ Return JSON shape:
         max_tokens=4096,
         messages=[{"role": "user", "content": prompt}],
     )
-    text = msg.content[0].text
+    text = next((b.text for b in msg.content if getattr(b, "type", None) == "text"), None)
+    if text is None:
+        raise RuntimeError(f"Claude returned no text block (stop_reason: {msg.stop_reason})")
     # Extract JSON object
     start = text.find("{")
     end = text.rfind("}")

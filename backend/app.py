@@ -3,7 +3,12 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Any, Literal, Optional
+
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -68,6 +73,23 @@ class AnalyzeTranscriptRequest(BaseModel):
     transcript: str
     note: Optional[str] = ""
     session_id: str = "default"
+
+
+class DiarizeRequest(BaseModel):
+    transcript: str
+
+
+@app.post("/api/diarize")
+def diarize_endpoint(req: DiarizeRequest) -> dict[str, Any]:
+    """Label speaker turns in a raw transcript using Claude."""
+    if not req.transcript or len(req.transcript.strip()) < 10:
+        raise HTTPException(status_code=400, detail="transcript too short")
+    try:
+        from mine import diarize
+        lines = diarize(req.transcript.strip())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    return {"lines": lines, "live": live_mine_available()}
 
 
 @app.post("/api/analyze_transcript")
