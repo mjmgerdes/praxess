@@ -1,3 +1,3 @@
-# hackathon-2026-07
+# praxess
 
-Hackathon project — WIP.
+Hackathon project.
