@@ -85,7 +85,9 @@ Return JSON shape:
         max_tokens=4096,
         messages=[{"role": "user", "content": prompt}],
     )
-    text = msg.content[0].text
+    text = next((b.text for b in msg.content if getattr(b, "type", None) == "text"), None)
+    if text is None:
+        raise RuntimeError(f"Claude returned no text block (stop_reason: {msg.stop_reason})")
     # Extract JSON object
     start = text.find("{")
     end = text.rfind("}")

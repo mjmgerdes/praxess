@@ -3,7 +3,12 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Any, Literal, Optional
+
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
