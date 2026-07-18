@@ -80,6 +80,7 @@ class Component extends DCLogic {
       appealSubmitted: false,
       denialReason: '',          // WHY, from the payer's denial letter (provider-entered)
       denialRef: '',             // payer's denial reference number
+      submitPortalOpen: false,   // manual-submission panel (portal link + confirmation)
     },
     engine: 'connecting',      // live | offline | connecting — honest indicator of backend link
     engineCriteria: null,      // criterion_id -> status from /api/analyze_transcript
@@ -627,7 +628,12 @@ class Component extends DCLogic {
         }));
         buildPacketPdf({ criteria: cr, addendumApproved: s.addendumApproved, patientAnswered: s.patientAnswered, recordReceived: s.recordReceived });
       },
-      submitPacket: () => { this.set({ submitted: true }); this.go('lifecycle'); },
+      // Submission is manual — Praxess prepares, the person submits on the
+      // payer's portal, then confirms here. No pretending it happened.
+      submitPortalOpen: s.submitPortalOpen,
+      openSubmitPortal: () => { this.set({ submitPortalOpen: true }); },
+      cancelSubmitPortal: () => { this.set({ submitPortalOpen: false }); },
+      confirmSubmitted: () => { this.set({ submitted: true, submitPortalOpen: false }); this.go('lifecycle'); },
       respApprove: () => this.set({ payerResponse: 'approve' }),
       respMore: () => this.set({ payerResponse: 'more' }),
       respDeny: () => this.set({ payerResponse: 'deny' }),
@@ -1493,11 +1499,23 @@ export default function LoopApp({ onBackToWorkspace }) {
             <p style={css(`margin:0;font-size:13px;line-height:1.65;color:oklch(0.38 0.02 258);`)}>Chronic mechanical low-back pain &gt;6 months with documented failure of a structured conservative-therapy course — self-directed care (clinician-reviewed addendum) and a verified 8-session physical-therapy program — without neurologic deficit or red flags. Advanced imaging is indicated to evaluate for structural etiology. Every assertion below links to transcript, note, FHIR, patient response, or external record.</p>
           </div>
 
-          <div style={css(`padding:16px 22px;border-top:1px solid oklch(0.93 0.006 258);display:flex;gap:10px;align-items:center;`)}>
-            <span style={css(`flex:1;font-size:12px;color:oklch(0.55 0.02 258);`)}>Draft — the clinician reviews before submission. Praxess does not auto-submit.</span>
-            <button onClick={V.downloadPacketPdf} style={css(`padding:12px 18px;border-radius:9px;border:1px solid oklch(0.88 0.01 255);background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;color:oklch(0.4 0.02 258);cursor:pointer;`)}>↓ Download packet · PDF</button>
-            <button onClick={V.submitPacket} style={css(`padding:12px 22px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;`)}>Submit to Meridian →</button>
-          </div>
+          {!V.submitPortalOpen ? (
+            <div style={css(`padding:16px 22px;border-top:1px solid oklch(0.93 0.006 258);display:flex;gap:10px;align-items:center;`)}>
+              <span style={css(`flex:1;font-size:12px;color:oklch(0.55 0.02 258);`)}>Draft — the clinician reviews before submission. Praxess does not auto-submit.</span>
+              <button onClick={V.downloadPacketPdf} style={css(`padding:12px 18px;border-radius:9px;border:1px solid oklch(0.88 0.01 255);background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;color:oklch(0.4 0.02 258);cursor:pointer;`)}>↓ Download packet · PDF</button>
+              <button onClick={V.openSubmitPortal} style={css(`padding:12px 22px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;`)}>Submit to Meridian →</button>
+            </div>
+          ) : (
+            <div style={css(`padding:16px 22px;border-top:1px solid oklch(0.86 0.04 250);background:oklch(0.975 0.012 250);`)}>
+              <div style={css(`font-size:13px;font-weight:600;color:oklch(0.34 0.02 258);margin-bottom:4px;`)}>Submit on the payer's portal — Praxess never submits for you</div>
+              <div style={css(`font-size:12.5px;line-height:1.55;color:oklch(0.45 0.02 258);margin-bottom:12px;`)}>Upload the downloaded packet PDF to Meridian's prior-authorization portal, then confirm here so the case keeps tracking.</div>
+              <div style={css(`display:flex;gap:10px;align-items:center;`)}>
+                <a href="https://apps.availity.com/availity/web/public.elegant.login" target="_blank" rel="noopener noreferrer" style={css(`padding:11px 18px;border-radius:9px;border:1px solid oklch(0.75 0.09 250);background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;color:oklch(0.42 0.12 255);cursor:pointer;text-decoration:none;`)}>Open Meridian submission portal ↗</a>
+                <button onClick={V.confirmSubmitted} style={css(`padding:11px 18px;border-radius:9px;border:none;background:oklch(0.55 0.11 155);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;`)}>✓ I submitted it — continue</button>
+                <button onClick={V.cancelSubmitPortal} style={css(`margin-left:auto;padding:11px 14px;border-radius:9px;border:1px solid oklch(0.9 0.008 255);background:transparent;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;color:oklch(0.55 0.02 258);cursor:pointer;`)}>Back</button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       </>) : null}
