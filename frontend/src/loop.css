@@ -1,0 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  a { color: oklch(0.55 0.13 250); text-decoration: none; }
+  a:hover { color: oklch(0.45 0.12 255); }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: oklch(0.88 0.01 255); border-radius: 6px; border: 3px solid transparent; background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background: oklch(0.8 0.01 255); background-clip: padding-box; border: 3px solid transparent; }
+  @keyframes prx-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  @keyframes prx-scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(1400%); } }
+  @keyframes prx-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* Scoped to the loop UI: neutralize the classic app's global heading font (index.css sets Fraunces serif) */
+.prx-loop h1, .prx-loop h2, .prx-loop h3, .prx-loop h4 { font-family: inherit; }

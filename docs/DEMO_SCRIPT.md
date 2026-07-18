@@ -1,6 +1,6 @@
 # Praxess — demo script & video plan
 
-**Setup before judging:** backend running (`uvicorn app:app --port 8000` in `backend/`), frontend running (`npm run dev` in `frontend/`), open `http://localhost:5173/praxess-ui.html`, confirm the top-right chip says **ENGINE LIVE** (green). Hard-refresh to reset the walkthrough state.
+**Setup before judging:** backend running (`uvicorn app:app --port 8000` in `backend/`), frontend running (`npm run dev` in `frontend/`), open `http://localhost:5173/` (the loop UI is the app; `?classic=1` = engine console, `/praxess-ui.html` = original design reference). Confirm the top-right chip says **ENGINE LIVE** (green). Hard-refresh to reset the walkthrough state.
 
 **Case:** Emory Kovacek, 22M (synthetic, Abridge dataset) · chronic low back pain · MRI lumbar spine w/o contrast (CPT 72148).
 
