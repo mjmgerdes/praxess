@@ -249,6 +249,8 @@ class Component extends DCLogic {
     const rp = this.readiness();
     switch (id) {
       case 'encounter': return 'done';
+      case 'world': return 'ok';       // lens · no input needed
+      case 'decision': return 'ok';    // lens · no input needed
       case 'addendum':
         if (s.addendumApproved) return 'done';
         return 'you';                  // clinician must approve
@@ -306,10 +308,12 @@ class Component extends DCLogic {
     // nav
     const stages = [
       { id: 'encounter', label: 'Encounter', sub: 'recorded \u00b7 analyzed', doneKey: 'always', marker: '01' },
-      { id: 'addendum', label: 'Addendum', sub: 'clinician-approved', doneKey: 'addendumApproved', marker: '02' },
-      { id: 'patient', label: 'Patient question', sub: 'targeted \u00b7 secure', doneKey: 'patientAnswered', marker: '03' },
-      { id: 'packet', label: 'PA packet', sub: 'provenance-backed', doneKey: 'packetGenerated', marker: '04' },
-      { id: 'lifecycle', label: 'Submission', sub: 'track \u00b7 appeal', doneKey: 'submitted', marker: '05' },
+      { id: 'world', label: 'World model', sub: 'case state', doneKey: null, marker: '02' },
+      { id: 'decision', label: 'Decision engine', sub: 'roll out \u00b7 decide', doneKey: null, marker: '03' },
+      { id: 'addendum', label: 'Addendum', sub: 'clinician-approved', doneKey: 'addendumApproved', marker: '04' },
+      { id: 'patient', label: 'Patient question', sub: 'targeted \u00b7 secure', doneKey: 'patientAnswered', marker: '05' },
+      { id: 'packet', label: 'PA packet', sub: 'provenance-backed', doneKey: 'packetGenerated', marker: '06' },
+      { id: 'lifecycle', label: 'Submission', sub: 'track \u00b7 appeal', doneKey: 'submitted', marker: '07' },
     ];
     const subYou = { addendum: 'review & approve', patient: 'send question', packet: 'review & submit', lifecycle: 'submit packet' };
     const navItems = stages.map(st => {
@@ -494,6 +498,8 @@ class Component extends DCLogic {
     return {
       // screen flags
       isEncounter: screen === 'encounter',
+      isWorld: screen === 'world',
+      isDecision: screen === 'decision',
       isAddendum: screen === 'addendum',
       isPatient: screen === 'patient',
       isRecord: screen === 'record',
@@ -541,10 +547,8 @@ class Component extends DCLogic {
 
       // handlers
       goEncounter: () => this.go('encounter'),
-      goDecision: () => {
-        const dest = { addendum: 'addendum', patient: 'patient', record: 'record', packet: 'packet', submit: 'packet', track: 'lifecycle' };
-        this.go(dest[this.phase()] || 'addendum');
-      },
+      goWorld: () => this.go('world'),
+      goDecision: () => this.go('decision'),
       approveAddendum: () => { this.set({ addendumApproved: true }); this.decide('conservative_care', 'approve'); },
       patientRespond: () => { this.set({ patientAnswered: true }); this.decide('physical_therapy', 'answer', '~8 weeks at Metro Physical Therapy, Jan–Mar.'); },
       receiveRecord: () => { this.set({ recordReceived: true }); },
