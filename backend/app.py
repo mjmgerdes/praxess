@@ -8,10 +8,16 @@ from typing import Any, Literal, Optional
 
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+# Load .env when present (local dev). In Railway the vars come from the
+# environment directly, so a missing .env file is fine.
+_env_path = Path(__file__).resolve().parent.parent / ".env"
+if _env_path.exists():
+    load_dotenv(_env_path)
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from actions import pending_artifacts
@@ -27,6 +33,8 @@ app = FastAPI(
     version="0.1.0",
 )
 
+# CORS — allow any origin so the frontend can live on a different Railway
+# service URL during development or staging. Tighten in production if needed.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -183,8 +191,30 @@ def trajectories(session_id: str = "default") -> dict[str, Any]:
     return get_trajectories(state)
 
 
+# ── Static frontend (built by `npm run build` in frontend/) ──────────────────
+# Railway build step runs `npm run build` then starts uvicorn. The FastAPI
+# process serves /api/* routes above and falls back to the React SPA for
+# everything else. This means a single Railway service handles both tiers.
+_STATIC_DIR = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+
+if _STATIC_DIR.is_dir():
+    # Mount /assets (Vite hashed bundles) as a static directory.
+    _assets = _STATIC_DIR / "assets"
+    if _assets.is_dir():
+        app.mount("/assets", StaticFiles(directory=str(_assets)), name="assets")
+
+    # Serve any other static file that exists (favicon, icons, public/).
+    @app.get("/{full_path:path}")
+    def spa_fallback(full_path: str) -> FileResponse:
+        candidate = _STATIC_DIR / full_path
+        if candidate.is_file():
+            return FileResponse(str(candidate))
+        # All non-file paths → index.html (React Router / SPA)
+        return FileResponse(str(_STATIC_DIR / "index.html"))
+
+
 if __name__ == "__main__":
     import uvicorn
 
     port = int(os.environ.get("PORT", "8000"))
-    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=False)

@@ -8,6 +8,7 @@ import React, { useReducer, useRef, useState, useEffect, useCallback } from 'rea
 import CaseConstellation from './CaseConstellation.jsx';
 import DecisionRollout from './DecisionRollout.jsx';
 import { buildPacketPdf } from './packetPdf.js';
+import { apiFetch, apiBase } from './api.js';
 import './loop.css';
 
 // ---- tiny runtime the verbatim class needs (in place of the .dc runtime) ----
@@ -76,13 +77,9 @@ class Component extends DCLogic {
   set(patch) { this.setState(s => ({ steps: { ...s.steps, ...patch } })); }
   go(screen) { this.setState({ screen }); }
 
-  // ---- live engine bridge (FastAPI backend via vite /api proxy) ----
+  // ---- live engine bridge (FastAPI backend via vite /api proxy in dev, VITE_API_URL in prod) ----
   api(path, body) {
-    return fetch('/api/' + path, {
-      method: body ? 'POST' : 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      body: body ? JSON.stringify(body) : undefined,
-    }).then(r => { if (!r.ok) throw new Error(path + ' ' + r.status); return r.json(); });
+    return apiFetch(path, body);
   }
 
   _applyState(res) {
@@ -730,13 +727,7 @@ export default function LoopApp({ onBackToWorkspace }) {
     if (!raw.trim()) return
     setDiarizing(true)
     try {
-      const res = await fetch('/api/diarize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript: raw }),
-      })
-      if (!res.ok) throw new Error('diarize ' + res.status)
-      const data = await res.json()
+      const data = await apiFetch('diarize', { transcript: raw })
       if (data.lines?.length) setRecLines(data.lines)
     } catch (e) { console.error(e) }
     finally { setDiarizing(false) }
@@ -748,13 +739,7 @@ export default function LoopApp({ onBackToWorkspace }) {
   const handleAnalyzeTranscript = useCallback(async (transcript, note) => {
     setAnalyzing(true)
     try {
-      const res = await fetch('/api/analyze_transcript', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript, note: note || '', session_id: 'design' }),
-      })
-      if (!res.ok) throw new Error('analyze_transcript ' + res.status)
-      const data = await res.json()
+      const data = await apiFetch('analyze_transcript', { transcript, note: note || '', session_id: 'design' })
       inst._applyState(data)
       inst.setState({
         screen: 'encounter',
