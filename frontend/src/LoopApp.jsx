@@ -4,7 +4,7 @@
 // (state machine, decision engine, live /api wiring); the template was converted
 // mechanically from the spec's HTML. Pixel fidelity comes from the spec's own
 // inline oklch() styles, parsed at runtime by css().
-import React, { useReducer, useRef } from 'react';
+import React, { useReducer, useRef, useState, useEffect, useCallback } from 'react';
 import CaseConstellation from './CaseConstellation.jsx';
 import { buildPacketPdf } from './packetPdf.js';
 import './loop.css';
@@ -66,7 +66,10 @@ class Component extends DCLogic {
     engine: 'connecting',      // live | offline | connecting — honest indicator of backend link
     engineCriteria: null,      // criterion_id -> status from /api/analyze_transcript
     priors: null,              // world-model priors (fit from the 25-encounter corpus; flywheel-refit)
-    payerIntel: null,          // payer requirements synced from the Praxigen coverage API
+    payerIntel: null,          // payer requirements synced from the coverage API
+    liveTranscript: null,      // inline-recorded transcript (Abhay's inline record flow)
+    liveNote: null,
+    liveGapCallout: null,
   };
 
   set(patch) { this.setState(s => ({ steps: { ...s.steps, ...patch } })); }
@@ -81,18 +84,24 @@ class Component extends DCLogic {
     }).then(r => { if (!r.ok) throw new Error(path + ' ' + r.status); return r.json(); });
   }
 
+  _applyState(res) {
+    const st = res.state || res;
+    const by = {};
+    (st.criteria || []).forEach(c => { by[c.id] = c.status; });
+    this.setState({
+      engine: 'live',
+      engineCriteria: by,
+      liveTranscript: st.transcript || null,
+      liveNote: st.note || null,
+      liveGapCallout: st.fhir_gap_callout || null,
+    });
+  }
+
   boot() {
     if (this._booted) return; this._booted = true;
     const ENC = '1ba8eeb9-bc93-7129-4390-0d2ddd560616::1ba8eeb9-bc93-7129-2e7d-8c427e72b964';
-    const body = { encounter_id: ENC, session_id: 'design', live_mine: false };
-    this.api('analyze', body)
-      .catch(() => this.api('analyze_transcript', body)) // route name differs between backend revisions
-      .then(res => {
-        const st = res.state || res;
-        const by = {};
-        (st.criteria || []).forEach(c => { by[c.id] = c.status; });
-        this.setState({ engine: 'live', engineCriteria: by });
-      })
+    this.api('analyze', { encounter_id: ENC, session_id: 'design', live_mine: false })
+      .then(res => this._applyState(res))
       .catch(() => this.setState({ engine: 'offline' }));
     // World-model priors + payer intel: static artifacts refreshed by the cron
     // jobs in ops/CRON.md; the UI reads whatever the last sync produced.
@@ -126,8 +135,9 @@ class Component extends DCLogic {
 
   decide(criterionId, decision, answer) {
     if (this.state.engine !== 'live') return;
-    this.api('decide', { session_id: 'design', criterion_id: criterionId, decision: decision, answer: answer })
-      .catch(() => {}); // criterion may not exist backend-side yet; UI state machine is source of truth for the walkthrough
+    this.api('decide', { session_id: 'design', criterion_id: criterionId, decision, answer })
+      .then(res => this._applyState(res))
+      .catch(() => {});
   }
 
   mapStatus(s) {
@@ -238,8 +248,6 @@ class Component extends DCLogic {
     const rp = this.readiness();
     switch (id) {
       case 'encounter': return 'done';
-      case 'world': return 'ok';       // lens \u00b7 no input needed
-      case 'decision': return 'ok';    // lens \u00b7 no input needed
       case 'addendum':
         if (s.addendumApproved) return 'done';
         return 'you';                  // clinician must approve
@@ -297,16 +305,14 @@ class Component extends DCLogic {
     // nav
     const stages = [
       { id: 'encounter', label: 'Encounter', sub: 'recorded \u00b7 analyzed', doneKey: 'always', marker: '01' },
-      { id: 'world', label: 'World model', sub: 'case state', doneKey: null, marker: '02' },
-      { id: 'decision', label: 'Decision engine', sub: 'roll out \u00b7 decide', doneKey: null, marker: '03' },
-      { id: 'addendum', label: 'Addendum', sub: 'clinician-approved', doneKey: 'addendumApproved', marker: '04' },
-      { id: 'patient', label: 'Patient question', sub: 'targeted \u00b7 secure', doneKey: 'patientAnswered', marker: '05' },
-      { id: 'packet', label: 'PA packet', sub: 'provenance-backed', doneKey: 'packetGenerated', marker: '06' },
-      { id: 'lifecycle', label: 'Submission', sub: 'track \u00b7 appeal', doneKey: 'submitted', marker: '07' },
+      { id: 'addendum', label: 'Addendum', sub: 'clinician-approved', doneKey: 'addendumApproved', marker: '02' },
+      { id: 'patient', label: 'Patient question', sub: 'targeted \u00b7 secure', doneKey: 'patientAnswered', marker: '03' },
+      { id: 'packet', label: 'PA packet', sub: 'provenance-backed', doneKey: 'packetGenerated', marker: '04' },
+      { id: 'lifecycle', label: 'Submission', sub: 'track \u00b7 appeal', doneKey: 'submitted', marker: '05' },
     ];
     const subYou = { addendum: 'review & approve', patient: 'send question', packet: 'review & submit', lifecycle: 'submit packet' };
     const navItems = stages.map(st => {
-      const active = screen === st.id || (st.id === 'decision' && screen === 'record');
+      const active = screen === st.id || (st.id === 'addendum' && screen === 'record');
       const status = this.stageStatus(st.id);
       const v = this.statusViz(status);
       let sub = st.sub;
@@ -487,8 +493,6 @@ class Component extends DCLogic {
     return {
       // screen flags
       isEncounter: screen === 'encounter',
-      isWorld: screen === 'world',
-      isDecision: screen === 'decision',
       isAddendum: screen === 'addendum',
       isPatient: screen === 'patient',
       isRecord: screen === 'record',
@@ -505,6 +509,8 @@ class Component extends DCLogic {
       recTitle: rec.t, recWhy: rec.w,
 
       transcript: this.transcript(),
+      liveNote: this.state.liveNote,
+      liveGapCallout: this.state.liveGapCallout,
       provenance: ['transcript \u00b7 12:04', 'clinical note', 'FHIR \u00b7 medication'],
 
       addStatus, addStatusColor, addStatusBg, addStatusBorder,
@@ -533,8 +539,10 @@ class Component extends DCLogic {
 
       // handlers
       goEncounter: () => this.go('encounter'),
-      goWorld: () => this.go('world'),
-      goDecision: () => this.go('decision'),
+      goDecision: () => {
+        const dest = { addendum: 'addendum', patient: 'patient', record: 'record', packet: 'packet', submit: 'packet', track: 'lifecycle' };
+        this.go(dest[this.phase()] || 'addendum');
+      },
       approveAddendum: () => { this.set({ addendumApproved: true }); this.decide('conservative_care', 'approve'); },
       patientRespond: () => { this.set({ patientAnswered: true }); this.decide('physical_therapy', 'answer', '~8 weeks at Metro Physical Therapy, Jan–Mar.'); },
       receiveRecord: () => { this.set({ recordReceived: true }); },
@@ -608,6 +616,33 @@ class Component extends DCLogic {
     return { addendum: 'Clinician \u2014 approve addendum', patient: 'Patient \u2014 answer question', record: 'Praxess \u2014 retrieve record', packet: 'Clinician \u2014 review packet', submit: 'Clinician \u2014 submit', track: 'Payer \u2014 determination' }[p];
   }
   transcript() {
+    const live = this.state.liveTranscript;
+    if (live) {
+      // Parse "SPEAKER: text" lines from raw transcript string
+      const lines = live.split('\n').filter(l => l.trim());
+      const parsed = [];
+      for (const line of lines) {
+        const m = line.match(/^(DR|PT|Doctor|Patient|Provider|Clinician)[:\s]+(.+)/i);
+        if (m) {
+          const tag = m[1].toUpperCase().startsWith('D') ? 'DR' : 'PT';
+          const text = m[2].trim();
+          const flag = /ibuprofen|physical therapy|pt\b|conservative/i.test(text);
+          parsed.push({ tag, text, flag });
+        } else if (line.trim()) {
+          parsed.push({ tag: '—', text: line.trim(), flag: false });
+        }
+      }
+      if (parsed.length > 0) {
+        return parsed.map(t => ({
+          tag: t.tag,
+          text: t.text,
+          tagColor: t.tag === 'DR' ? 'oklch(0.45 0.12 255)' : 'oklch(0.55 0.09 300)',
+          rowBg: t.flag ? 'oklch(0.97 0.02 250)' : 'transparent',
+          rowBorder: t.flag ? 'oklch(0.9 0.02 250)' : 'transparent',
+        }));
+      }
+    }
+    // fallback hardcoded demo transcript
     return [
       { tag: "PT", text: "A dull band across the very bottom of my back. Right now it's like a four out of ten. Desk days make it worse." },
       { tag: "DR", text: "Does it ever shoot down a leg? Numbness, tingling, weakness in the feet?" },
@@ -626,8 +661,104 @@ class Component extends DCLogic {
 }
 
 
+
 export default function LoopApp() {
   const inst = useDC(Component);
+  const [showRecord, setShowRecord] = useState(false)
+  const [analyzing, setAnalyzing] = useState(false)
+
+  // Recording state (inline in encounter page)
+  const [recRecording, setRecRecording] = useState(false)
+  const [recLines, setRecLines] = useState([])
+  const [recInterim, setRecInterim] = useState('')
+  const [recSpeaker, setRecSpeaker] = useState('DR')
+  const [recNote, setRecNote] = useState('')
+  const [recSupported, setRecSupported] = useState(true)
+  const [diarizing, setDiarizing] = useState(false)
+  const recRef = useRef(null)
+  const recSpeakerRef = useRef('DR')
+
+  useEffect(() => { recSpeakerRef.current = recSpeaker }, [recSpeaker])
+
+  useEffect(() => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SR) { setRecSupported(false); return }
+    const r = new SR()
+    r.continuous = true
+    r.interimResults = true
+    r.lang = 'en-US'
+    r.onresult = (e) => {
+      let fin = '', int = ''
+      for (const res of Array.from(e.results)) {
+        if (res.isFinal) fin += res[0].transcript + ' '
+        else int += res[0].transcript
+      }
+      if (fin) setRecLines(prev => {
+        const spk = recSpeakerRef.current
+        const last = prev[prev.length - 1]
+        if (last && last.speaker === spk) return [...prev.slice(0, -1), { speaker: spk, text: last.text + fin }]
+        return [...prev, { speaker: spk, text: fin }]
+      })
+      setRecInterim(int)
+    }
+    r.onerror = (e) => { if (e.error !== 'no-speech') console.warn('SR', e.error) }
+    r.onend = () => { setRecRecording(false); setRecInterim('') }
+    recRef.current = r
+    return () => r.abort()
+  }, [])
+
+  function toggleRec() {
+    const r = recRef.current
+    if (!r) return
+    if (recRecording) { r.stop(); setRecRecording(false) }
+    else { r.start(); setRecRecording(true) }
+  }
+
+  function switchSpeaker(spk) {
+    setRecSpeaker(spk)
+    recSpeakerRef.current = spk
+  }
+
+  async function autoDiarize() {
+    const raw = recLines.map(l => l.text.trim()).join(' ')
+    if (!raw.trim()) return
+    setDiarizing(true)
+    try {
+      const res = await fetch('/api/diarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript: raw }),
+      })
+      if (!res.ok) throw new Error('diarize ' + res.status)
+      const data = await res.json()
+      if (data.lines?.length) setRecLines(data.lines)
+    } catch (e) { console.error(e) }
+    finally { setDiarizing(false) }
+  }
+
+  const recRawTranscript = recLines.map(l => `${l.speaker}: ${l.text.trim()}`).join('\n')
+  const recWords = recLines.reduce((n, l) => n + l.text.trim().split(/\s+/).length, 0)
+
+  const handleAnalyzeTranscript = useCallback(async (transcript, note) => {
+    setAnalyzing(true)
+    try {
+      const res = await fetch('/api/analyze_transcript', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript, note: note || '', session_id: 'design' }),
+      })
+      if (!res.ok) throw new Error('analyze_transcript ' + res.status)
+      const data = await res.json()
+      inst._applyState(data)
+      inst.setState({
+        screen: 'encounter',
+        steps: { addendumApproved: false, patientAsked: false, patientAnswered: false, recordRequested: false, recordReceived: false, packetGenerated: false, submitted: false, payerResponse: null },
+      })
+      setShowRecord(false)
+    } catch (e) { console.error(e) }
+    finally { setAnalyzing(false) }
+  }, [inst])
+
   const V = inst.renderVals();
   const steps = inst.state.steps;
   // Source-node colors track the evidence state: verified sources green,
@@ -759,40 +890,143 @@ export default function LoopApp() {
         <div style={css(`display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;`)}>
           <div>
             <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;`)}>01 · Encounter capture</div>
-            <h1 style={css(`margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em;`)}>Live encounter, analyzed</h1>
+            <h1 style={css(`margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em;`)}>{showRecord ? 'Record new encounter' : 'Live encounter, analyzed'}</h1>
           </div>
-          <div style={css(`display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(0.6 0.11 155);border:1px solid oklch(0.85 0.05 155);background:oklch(0.97 0.02 155);border-radius:7px;padding:7px 11px;`)}>
-            <span style={css(`width:7px;height:7px;border-radius:50%;background:oklch(0.6 0.11 155);`)}></span>
-            Recorded &amp; transcribed · speakers separated
-          </div>
+          {!showRecord && (
+            <div style={css(`display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(0.6 0.11 155);border:1px solid oklch(0.85 0.05 155);background:oklch(0.97 0.02 155);border-radius:7px;padding:7px 11px;`)}>
+              <span style={css(`width:7px;height:7px;border-radius:50%;background:oklch(0.6 0.11 155);`)}></span>
+              Recorded &amp; transcribed · speakers separated
+            </div>
+          )}
         </div>
 
         <div style={css(`display:grid;grid-template-columns:1.15fr 1fr;gap:18px;align-items:start;`)}>
-          
+
+          {/* Left panel — transcript view OR recorder */}
           <div style={css(`background:#fff;border:1px solid oklch(0.91 0.008 255);border-radius:12px;overflow:hidden;`)}>
-            <div style={css(`padding:13px 16px;border-bottom:1px solid oklch(0.93 0.006 258);display:flex;align-items:center;justify-content:space-between;`)}>
-              <span style={css(`font-size:13px;font-weight:600;`)}>Encounter transcript</span>
-              <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.62 0.015 258);`)}>SRC · ambient recording</span>
+            {/* Panel header with tabs */}
+            <div style={css(`padding:10px 14px;border-bottom:1px solid oklch(0.93 0.006 258);display:flex;align-items:center;justify-content:space-between;`)}>
+              <div style={css(`display:flex;gap:2px;background:oklch(0.95 0.006 258);border-radius:8px;padding:3px;`)}>
+                <button
+                  onClick={() => setShowRecord(false)}
+                  style={css(`padding:5px 13px;border-radius:6px;border:none;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.04em;transition:all .15s;background:${!showRecord ? '#fff' : 'transparent'};color:${!showRecord ? 'oklch(0.34 0.02 258)' : 'oklch(0.6 0.02 258)'};box-shadow:${!showRecord ? '0 1px 3px oklch(0.3 0.02 258 / 0.1)' : 'none'};`)}>
+                  Transcript
+                </button>
+                <button
+                  onClick={() => setShowRecord(true)}
+                  style={css(`padding:5px 13px;border-radius:6px;border:none;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.04em;transition:all .15s;background:${showRecord ? '#fff' : 'transparent'};color:${showRecord ? 'oklch(0.45 0.12 255)' : 'oklch(0.6 0.02 258)'};box-shadow:${showRecord ? '0 1px 3px oklch(0.3 0.02 258 / 0.1)' : 'none'};`)}>
+                  🎙 Record
+                </button>
+              </div>
+              {!showRecord && <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.62 0.015 258);`)}>SRC · ambient recording</span>}
+              {showRecord && recLines.length > 0 && !recRecording && (
+                <button
+                  onClick={autoDiarize}
+                  disabled={diarizing}
+                  style={css(`padding:5px 11px;border-radius:7px;border:1px solid oklch(0.87 0.04 250);background:oklch(0.97 0.02 250);font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:500;color:oklch(0.45 0.12 255);cursor:${diarizing ? 'not-allowed' : 'pointer'};`)}>
+                  {diarizing ? '⟳ Labeling…' : '✦ Auto-label speakers'}
+                </button>
+              )}
             </div>
-            <div style={css(`padding:8px 16px 16px;display:flex;flex-direction:column;gap:3px;max-height:440px;overflow:auto;`)}>
-              {V.transcript.map((t, _i0) => (<React.Fragment key={_i0}>
-                <div style={css(`display:flex;gap:11px;padding:9px 10px;border-radius:9px;background:${t.rowBg};border:1px solid ${t.rowBorder};`)}>
-                  <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.06em;color:${t.tagColor};flex-shrink:0;width:34px;padding-top:1px;`)}>{t.tag}</span>
-                  <span style={css(`font-size:13px;line-height:1.5;color:oklch(0.34 0.02 258);`)}>{t.text}</span>
+
+            {/* Transcript view */}
+            {!showRecord && (
+              <div style={css(`padding:8px 16px 16px;display:flex;flex-direction:column;gap:3px;max-height:440px;overflow:auto;`)}>
+                {V.transcript.map((t, _i0) => (<React.Fragment key={_i0}>
+                  <div style={css(`display:flex;gap:11px;padding:9px 10px;border-radius:9px;background:${t.rowBg};border:1px solid ${t.rowBorder};`)}>
+                    <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.06em;color:${t.tagColor};flex-shrink:0;width:34px;padding-top:1px;`)}>{t.tag}</span>
+                    <span style={css(`font-size:13px;line-height:1.5;color:oklch(0.34 0.02 258);`)}>{t.text}</span>
+                  </div>
+                </React.Fragment>))}
+              </div>
+            )}
+
+            {/* Record view */}
+            {showRecord && (
+              <div style={css(`padding:12px 14px;display:flex;flex-direction:column;gap:12px;`)}>
+                {/* Controls */}
+                <div style={css(`display:flex;align-items:center;gap:10px;`)}>
+                  <button
+                    onClick={toggleRec}
+                    style={css(`width:42px;height:42px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:${recRecording ? 'oklch(0.55 0.12 25)' : 'oklch(0.45 0.12 255)'};color:#fff;box-shadow:${recRecording ? '0 0 0 6px oklch(0.55 0.12 25 / 0.15)' : 'none'};`)}>
+                    {recRecording ? '⏹' : '🎙'}
+                  </button>
+                  <div style={css(`display:flex;background:oklch(0.95 0.006 258);border-radius:8px;padding:2px;gap:2px;`)}>
+                    {['DR','PT'].map(spk => (
+                      <button key={spk} onClick={() => switchSpeaker(spk)}
+                        style={css(`padding:5px 14px;border-radius:6px;border:none;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;transition:all .12s;background:${recSpeaker===spk?'#fff':'transparent'};color:${recSpeaker===spk?(spk==='DR'?'oklch(0.45 0.12 255)':'oklch(0.5 0.09 300)'):'oklch(0.6 0.02 258)'};box-shadow:${recSpeaker===spk?'0 1px 3px oklch(0.3 0.02 258 / 0.1)':'none'};`)}>
+                        {spk==='DR'?'Doctor':'Patient'}
+                      </button>
+                    ))}
+                  </div>
+                  {recRecording && <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.55 0.12 25);display:flex;align-items:center;gap:5px;`)}><span style={css(`width:6px;height:6px;border-radius:50%;background:oklch(0.55 0.12 25);animation:prx-pulse 1s infinite;`)}></span>Live</span>}
+                  {recWords > 0 && <span style={css(`margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.65 0.015 258);`)}>{recWords}w</span>}
                 </div>
-              </React.Fragment>))}
-            </div>
+
+                {/* Live transcript */}
+                <div style={css(`min-height:180px;max-height:320px;overflow:auto;display:flex;flex-direction:column;gap:2px;`)}>
+                  {recLines.length === 0 && !recInterim && (
+                    <span style={css(`font-size:12px;color:oklch(0.7 0.015 258);padding:6px 2px;`)}>Press 🎙 to start, or paste text below.</span>
+                  )}
+                  {recLines.map((l, i) => (
+                    <div key={i} style={css(`display:flex;gap:10px;padding:6px 8px;border-radius:7px;background:${l.speaker==='PT'?'oklch(0.985 0.005 300 / 0.5)':'transparent'};`)}>
+                      <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:${l.speaker==='DR'?'oklch(0.45 0.12 255)':'oklch(0.5 0.09 300)'};flex-shrink:0;width:28px;padding-top:2px;`)}>{l.speaker}</span>
+                      <span style={css(`font-size:12px;line-height:1.5;color:oklch(0.34 0.02 258);`)}>{l.text.trim()}</span>
+                    </div>
+                  ))}
+                  {recInterim && (
+                    <div style={css(`display:flex;gap:10px;padding:6px 8px;opacity:0.5;`)}>
+                      <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:${recSpeaker==='DR'?'oklch(0.45 0.12 255)':'oklch(0.5 0.09 300)'};flex-shrink:0;width:28px;padding-top:2px;`)}>{recSpeaker}</span>
+                      <span style={css(`font-size:12px;line-height:1.5;color:oklch(0.34 0.02 258);font-style:italic;`)}>{recInterim}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Paste fallback */}
+                {!recSupported && (
+                  <textarea
+                    placeholder={'DR: text...\nPT: text...'}
+                    onChange={e => {
+                      setRecLines(e.target.value.split('\n').filter(l=>l.trim()).map(l=>{
+                        const m=l.match(/^(DR|PT)[:\s]+(.+)/i)
+                        return m?{speaker:m[1].toUpperCase(),text:m[2]}:{speaker:'DR',text:l}
+                      }))
+                    }}
+                    style={css(`width:100%;min-height:80px;border:1px solid oklch(0.91 0.008 255);border-radius:8px;padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.6;color:oklch(0.34 0.02 258);outline:none;resize:vertical;box-sizing:border-box;`)}
+                  />
+                )}
+
+                {/* Note field */}
+                <textarea
+                  value={recNote}
+                  onChange={e => setRecNote(e.target.value)}
+                  placeholder="Clinical note (optional)"
+                  style={css(`width:100%;min-height:56px;border:1px solid oklch(0.91 0.008 255);border-radius:8px;padding:9px 12px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;line-height:1.5;color:oklch(0.34 0.02 258);outline:none;resize:vertical;box-sizing:border-box;`)}
+                />
+
+                {/* Analyze */}
+                <button
+                  disabled={analyzing || recRawTranscript.length < 20}
+                  onClick={() => handleAnalyzeTranscript(recRawTranscript, recNote)}
+                  style={css(`padding:10px;border-radius:9px;border:none;background:${recRawTranscript.length>=20&&!analyzing?'oklch(0.45 0.12 255)':'oklch(0.88 0.006 258)'};color:${recRawTranscript.length>=20&&!analyzing?'#fff':'oklch(0.6 0.02 258)'};font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:${recRawTranscript.length>=20&&!analyzing?'pointer':'not-allowed'};`)}>
+                  {analyzing ? 'Analyzing…' : 'Analyze →'}
+                </button>
+              </div>
+            )}
           </div>
 
-          
+          {/* Right column — note + gap (unchanged) */}
           <div style={css(`display:flex;flex-direction:column;gap:16px;`)}>
             <div style={css(`background:#fff;border:1px solid oklch(0.91 0.008 255);border-radius:12px;overflow:hidden;`)}>
               <div style={css(`padding:13px 16px;border-bottom:1px solid oklch(0.93 0.006 258);display:flex;align-items:center;justify-content:space-between;`)}>
                 <span style={css(`font-size:13px;font-weight:600;`)}>Clinical note · payer-visible</span>
                 <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.62 0.015 258);`)}>FHIR</span>
               </div>
-              <div style={css(`padding:14px 16px;font-size:13px;line-height:1.55;color:oklch(0.38 0.02 258);`)}>
-                <span style={css(`font-weight:600;color:oklch(0.3 0.03 258);`)}>Chronic low back pain.</span> Mechanical, muscular pattern without red flags, aggravated by prolonged sitting; exam without neurologic deficit. Ibuprofen 400 mg oral tablet prescribed; take with food as needed for flares. Activity counseling: hourly breaks from sitting, daily walking, hip-hinge lifting mechanics. Reassess at 4-week follow-up.
+              <div style={css(`padding:14px 16px;font-size:13px;line-height:1.55;color:oklch(0.38 0.02 258);max-height:200px;overflow:auto;`)}>
+                {V.liveNote
+                  ? V.liveNote.slice(0, 800)
+                  : <><span style={css(`font-weight:600;color:oklch(0.3 0.03 258);`)}>Chronic low back pain.</span> Mechanical, muscular pattern without red flags, aggravated by prolonged sitting; exam without neurologic deficit. Ibuprofen 400 mg oral tablet prescribed; take with food as needed for flares. Activity counseling: hourly breaks from sitting, daily walking, hip-hinge lifting mechanics. Reassess at 4-week follow-up.</>
+                }
               </div>
             </div>
 
@@ -800,7 +1034,10 @@ export default function LoopApp() {
               <div style={css(`display:flex;align-items:center;gap:8px;margin-bottom:10px;`)}>
                 <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.45 0.12 255);`)}>Gap detected</span>
               </div>
-              <p style={css(`margin:0 0 12px;font-size:13px;line-height:1.55;color:oklch(0.34 0.03 258);`)}>The note records prior ibuprofen use with good effect — but not how long the trial ran or why it stopped. The conversation has it: <strong style={css(`font-weight:600;`)}>“ibuprofen for a while, which worked, but the bottle ran out months ago.”</strong></p>
+              {V.liveGapCallout
+                ? <p style={css(`margin:0 0 12px;font-size:13px;line-height:1.55;color:oklch(0.34 0.03 258);`)}><strong style={css(`font-weight:600;`)}>{V.liveGapCallout.title}:</strong> {V.liveGapCallout.detail}</p>
+                : <p style={css(`margin:0 0 12px;font-size:13px;line-height:1.55;color:oklch(0.34 0.03 258);`)}>The note records prior ibuprofen use with good effect — but not how long the trial ran or why it stopped. The conversation has it: <strong style={css(`font-weight:600;`)}>&ldquo;ibuprofen for a while, which worked, but the bottle ran out months ago.&rdquo;</strong></p>
+              }
               <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:11px;color:oklch(0.5 0.05 258);background:#fff;border:1px solid oklch(0.9 0.02 250);border-radius:8px;padding:9px 11px;line-height:1.6;`)}>
                 iron_rule: <span style={css(`color:oklch(0.45 0.12 255);font-weight:600;`)}>unknown&nbsp;≠&nbsp;no</span><br/>
                 action: transcript may inform the record, <span style={css(`color:oklch(0.45 0.12 255);`)}>but cannot modify it</span>
@@ -812,7 +1049,7 @@ export default function LoopApp() {
       </div>
       </>) : null}
 
-      
+
       {(V.isWorld) ? (<>
       <div style={css(`animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;`)}>
         <div style={css(`display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;`)}>
@@ -935,7 +1172,7 @@ export default function LoopApp() {
       </div>
       </>) : null}
 
-      
+
       {(V.isAddendum) ? (<>
       <div style={css(`animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;max-width:760px;`)}>
         <div style={css(`margin-bottom:20px;`)}>
