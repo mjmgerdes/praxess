@@ -621,6 +621,7 @@ class Component extends DCLogic {
       respApprove: () => this.set({ payerResponse: 'approve' }),
       respMore: () => this.set({ payerResponse: 'more' }),
       respDeny: () => this.set({ payerResponse: 'deny' }),
+      respReset: () => this.set({ payerResponse: null, appealLetterApproved: false, p2pPrepped: false, appealSubmitted: false }),
 
       // ---- post-denial workspace: appeal letter + peer-to-peer prep ----
       isDenied: pr === 'deny',
@@ -1475,29 +1476,41 @@ export default function LoopApp({ onBackToWorkspace }) {
         </div>
 
         <div style={css(`display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;`)}>
-          <div style={css(`background:#fff;border:1px solid oklch(0.91 0.008 255);border-radius:12px;padding:18px;`)}>
-            <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);`)}>Simulate payer response</span>
-            <div style={css(`display:flex;flex-direction:column;gap:9px;margin-top:12px;`)}>
-              <button onClick={V.respApprove} style={css(`text-align:left;padding:12px 14px;border-radius:9px;border:1px solid oklch(0.85 0.05 155);background:oklch(0.98 0.02 155);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:oklch(0.4 0.06 155);`)}>✓ Approved</button>
-              <button onClick={V.respMore} style={css(`text-align:left;padding:12px 14px;border-radius:9px;border:1px solid oklch(0.86 0.05 75);background:oklch(0.98 0.02 75);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:oklch(0.45 0.06 60);`)}>◐ More information requested</button>
-              <button onClick={V.respDeny} style={css(`text-align:left;padding:12px 14px;border-radius:9px;border:1px solid oklch(0.86 0.06 25);background:oklch(0.98 0.02 25);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:oklch(0.5 0.08 25);`)}>✕ Denied</button>
+          {/* Left — selection panel OR locked-in status card */}
+          {(!V.hasResponse) ? (
+            <div style={css(`background:#fff;border:1px solid oklch(0.91 0.008 255);border-radius:12px;padding:18px;`)}>
+              <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);`)}>Simulate payer response</span>
+              <div style={css(`display:flex;flex-direction:column;gap:9px;margin-top:12px;`)}>
+                <button onClick={V.respApprove} style={css(`text-align:left;padding:12px 14px;border-radius:9px;border:1px solid oklch(0.85 0.05 155);background:oklch(0.98 0.02 155);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:oklch(0.4 0.06 155);transition:filter .12s;`)}>✓ Approved</button>
+                <button onClick={V.respMore} style={css(`text-align:left;padding:12px 14px;border-radius:9px;border:1px solid oklch(0.86 0.05 75);background:oklch(0.98 0.02 75);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:oklch(0.45 0.06 60);transition:filter .12s;`)}>◐ More information requested</button>
+                <button onClick={V.respDeny} style={css(`text-align:left;padding:12px 14px;border-radius:9px;border:1px solid oklch(0.86 0.06 25);background:oklch(0.98 0.02 25);cursor:pointer;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:oklch(0.5 0.08 25);transition:filter .12s;`)}>✕ Denied</button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div style={css(`background:${V.obsBg};border:1.5px solid ${V.obsBorder};border-radius:12px;padding:18px;animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;`)}>
+              <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:${V.obsColor};`)}>Payer determination</span>
+              <div style={css(`display:flex;align-items:center;gap:11px;margin-top:14px;margin-bottom:16px;`)}>
+                <span style={css(`width:36px;height:36px;border-radius:10px;background:${V.obsColor};color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;`)}>{V.obsIcon}</span>
+                <span style={css(`font-size:20px;font-weight:700;letter-spacing:-0.01em;color:${V.obsColor};`)}>{V.obsTitle}</span>
+              </div>
+              <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.8;color:oklch(0.45 0.02 258);background:#fff;border:1px solid ${V.obsBorder};border-radius:9px;padding:11px 13px;`)}>
+                {V.obsDetailA}<br/><span style={css(`color:${V.obsColor};`)}>{V.obsDetailB}</span>
+              </div>
+              <button onClick={V.respReset} style={css(`margin-top:14px;width:100%;padding:9px;border-radius:9px;border:1px solid oklch(0.88 0.01 255);background:#fff;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:oklch(0.55 0.02 258);cursor:pointer;letter-spacing:0.02em;`)}>↩ Roll back determination</button>
+            </div>
+          )}
 
+          {/* Right — re-plan panel */}
           <div style={css(`background:#fff;border:1px solid ${V.obsBorder};border-radius:12px;padding:18px;min-height:180px;`)}>
             <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);`)}>Observe → update → re-plan</span>
             {(V.hasResponse) ? (<>
               <div style={css(`margin-top:12px;animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;`)}>
-                <div style={css(`display:flex;align-items:center;gap:9px;margin-bottom:12px;`)}>
-                  <span style={css(`width:24px;height:24px;border-radius:7px;background:${V.obsBg};color:${V.obsColor};display:flex;align-items:center;justify-content:center;font-size:13px;`)}>{V.obsIcon}</span>
-                  <span style={css(`font-size:15px;font-weight:600;color:${V.obsColor};`)}>{V.obsTitle}</span>
-                </div>
                 <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.8;color:oklch(0.45 0.02 258);background:oklch(0.985 0.004 255);border:1px solid oklch(0.93 0.006 258);border-radius:9px;padding:12px 14px;`)}>{V.obsDetailA}<br/><span style={css(`color:${V.obsColor};`)}>{V.obsDetailB}</span></div>
                 <div style={css(`margin-top:12px;font-size:13px;color:oklch(0.35 0.02 258);`)}><strong style={css(`font-weight:600;`)}>Re-planned action:</strong> {V.obsAction}</div>
               </div>
             </>) : null}
             {(V.noResponse) ? (<>
-              <div style={css(`margin-top:20px;font-size:13px;color:oklch(0.62 0.015 258);text-align:center;line-height:1.6;`)}>Waiting on payer.<br/>Choose a response to see Praxess re-plan.</div>
+              <div style={css(`margin-top:20px;font-size:13px;color:oklch(0.62 0.015 258);text-align:center;line-height:1.6;`)}>Waiting on payer.<br/>Select a response on the left to see Praxess re-plan.</div>
             </>) : null}
           </div>
         </div>
