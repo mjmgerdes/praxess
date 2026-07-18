@@ -942,8 +942,8 @@ export default function LoopApp({ onBackToWorkspace }) {
       </React.Fragment>))}
     </div>
 
-    <div style={css(`display:flex;flex-direction:column;gap:6px;min-width:158px;`)}>
-      <div style={css(`display:flex;align-items:baseline;justify-content:space-between;`)}>
+    <div style={css(`display:flex;flex-direction:column;gap:6px;min-width:200px;`)}>
+      <div style={css(`display:flex;align-items:baseline;justify-content:space-between;gap:14px;`)}>
         <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:oklch(0.6 0.02 258);`)}>Coverage readiness</span>
         <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:${V.readinessColor};`)}>{V.readinessPct}%</span>
       </div>
