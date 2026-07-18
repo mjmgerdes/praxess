@@ -3,7 +3,7 @@
   "fixture_key": "primary_lbp",
   "policy_id": "lumbar_mri_v1",
   "service_requested": "Lumbar MRI without contrast",
-  "demo_headline": "As documented, duration of the ibuprofen trial is missing \u2014 deniable today. The room said otherwise.",
+  "demo_headline": "As documented, duration of the ibuprofen trial is missing — deniable today. The room said otherwise.",
   "completeness": {
     "met": 2,
     "recoverable": 2,
@@ -13,7 +13,7 @@
   "criteria": [
     {
       "id": "symptom_duration",
-      "label": "Symptom duration \u2265 6 weeks",
+      "label": "Symptom duration ≥ 6 weeks",
       "status": "documented",
       "confidence": 0.92,
       "summary": "Chronic course dating to a college lifting injury; note documents multi-year history.",
@@ -35,7 +35,7 @@
     },
     {
       "id": "conservative_care",
-      "label": "Failed / incomplete conservative care \u2265 6 weeks",
+      "label": "Failed / incomplete conservative care ≥ 6 weeks",
       "status": "conversation_enriched",
       "confidence": 0.88,
       "summary": "Walking and hot showers spoken in room (not fully in note); note collapses modality to 'heat' and omits that the helpful routine lapsed months ago.",
@@ -50,13 +50,13 @@
           "source_layer": "note",
           "quoted_span": "It improves with walking and heat.",
           "source_location": "note.subjective",
-          "supports": "Partial note capture \u2014 modality/duration lossy"
+          "supports": "Partial note capture — modality/duration lossy"
         }
       ],
       "artifact": {
         "type": "note_addendum",
         "id": "addendum_conservative_care",
-        "title": "Draft note addendum \u2014 conservative care detail",
+        "title": "Draft note addendum — conservative care detail",
         "status": "pending_approval",
         "body": "Addendum (draft): Patient reports conservative measures including walking and hot showers. He previously used ibuprofen with good effect for a while, but the bottle ran out months ago and he has not restarted therapy. Functional aggravation with prolonged sitting at work.",
         "provenance_links": [
@@ -87,13 +87,13 @@
           "source_layer": "fhir",
           "quoted_span": "Ibuprofen 400 MG Oral Tablet [Ibu]",
           "source_location": "fhir.MedicationRequest + longitudinal_medications",
-          "supports": "Today's prescription / chart med label \u2014 not proof of \u22656-week prior trial"
+          "supports": "Today's prescription / chart med label — not proof of ≥6-week prior trial"
         }
       ],
       "artifact": {
         "type": "note_addendum",
         "id": "addendum_nsaid_trial",
-        "title": "Draft note addendum \u2014 NSAID trial duration",
+        "title": "Draft note addendum — NSAID trial duration",
         "status": "pending_approval",
         "body": "Addendum (draft): Patient reports a prior ibuprofen trial that was helpful; supply ran out months ago and he has not resumed. New ibuprofen 400 mg prescribed today does not substitute for documenting the historical trial duration.",
         "provenance_links": [
@@ -124,9 +124,9 @@
       "artifact": {
         "type": "imperfect_extraction",
         "id": "imperfect_mri_already_done",
-        "title": "Flagged claim (review) \u2014 prior MRI mentioned",
+        "title": "Flagged claim (review) — prior MRI mentioned",
         "status": "pending_approval",
-        "body": "Extracted claim: 'Patient reports prior lumbar MRI last year.' \u2014 NOT found in transcript or note. Shown so clinician can dismiss a bad extraction.",
+        "body": "Extracted claim: 'Patient reports prior lumbar MRI last year.' — NOT found in transcript or note. Shown so clinician can dismiss a bad extraction.",
         "provenance_links": [],
         "demo_imperfect": true,
         "should_dismiss": true
@@ -151,18 +151,18 @@
         "id": "question_functional",
         "title": "One targeted question",
         "status": "pending_answer",
-        "route_to": "clinician",
-        "body": "For the PA packet: has low back pain limited work duties or ADLs for \u22656 weeks (e.g., cannot sit through a shift, reduced lifting, missed tasks)?",
-        "expected_status_on_yes": "documented"
+        "route_to": "patient",
+        "body": "Have you done any physical therapy for your back? If so, roughly where and for how long?",
+        "expected_status_on_yes": "patient_reported"
       }
     }
   ],
   "fhir_gap_callout": {
     "title": "Encounter FHIR gap",
-    "detail": "Visit Condition resources list employment, stress, and gingivitis \u2014 not chronic low back pain. LBP appears in longitudinal chart labels only. Conversation remains the richest evidence layer."
+    "detail": "Visit Condition resources list employment, stress, and gingivitis — not chronic low back pain. LBP appears in longitudinal chart labels only. Conversation remains the richest evidence layer."
   },
   "packet_draft": {
-    "title": "Draft prior authorization packet \u2014 Lumbar MRI",
+    "title": "Draft prior authorization packet — Lumbar MRI",
     "status": "incomplete_pending_hitl",
     "facts": []
   }

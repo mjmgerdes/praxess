@@ -198,7 +198,7 @@ class Component extends DCLogic {
     const s = this.state.steps;
     // Post-action step flags win; otherwise the live engine's analyzed status; design default last.
     const c4 = s.addendumApproved ? 'documented' : this.liveStatus('conservative_care', 'partial');
-    let c5 = this.liveStatus('physical_therapy', 'unknown');
+    let c5 = this.liveStatus('functional_limitation', 'unknown');
     if (s.recordReceived) c5 = 'verified';
     else if (s.patientAnswered) c5 = 'patient';
     return [
@@ -593,7 +593,7 @@ class Component extends DCLogic {
       selectVisit: (id) => this.selectVisit(id),
       analyzeCurrentVisit: () => this.analyzeVisit(this.state.selectedVisitId),
       approveAddendum: () => { this.set({ addendumApproved: true }); this.decide('conservative_care', 'approve'); },
-      patientRespond: () => { this.set({ patientAnswered: true }); this.decide('physical_therapy', 'answer', '~8 weeks at Metro Physical Therapy, Jan–Mar.'); },
+      patientRespond: () => { this.set({ patientAnswered: true }); this.decide('functional_limitation', 'answer', '~8 weeks at Metro Physical Therapy, Jan–Mar.'); },
       receiveRecord: () => { this.set({ recordReceived: true }); },
       generateAndGo: () => { this.set({ packetGenerated: true }); this.go('packet'); },
       downloadPacketPdf: () => {

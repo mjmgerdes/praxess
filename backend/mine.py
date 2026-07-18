@@ -9,6 +9,9 @@ from typing import Any
 from loader import load_policy
 from verify import verify_belief_state
 
+# Current stable Sonnet 4 snapshot — override via ANTHROPIC_MODEL env var.
+_DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
+
 
 def live_mine_available() -> bool:
     return bool(os.environ.get("ANTHROPIC_API_KEY"))
@@ -44,7 +47,7 @@ JSON array:"""
 
     client = anthropic.Anthropic()
     msg = client.messages.create(
-        model=os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-20250514"),
+        model=os.environ.get("ANTHROPIC_MODEL", _DEFAULT_MODEL),
         max_tokens=4096,
         messages=[{"role": "user", "content": prompt}],
     )
@@ -131,7 +134,7 @@ Return JSON shape:
 
     client = anthropic.Anthropic()
     msg = client.messages.create(
-        model=os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-20250514"),
+        model=os.environ.get("ANTHROPIC_MODEL", _DEFAULT_MODEL),
         max_tokens=4096,
         messages=[{"role": "user", "content": prompt}],
     )
