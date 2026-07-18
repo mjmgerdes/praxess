@@ -1,0 +1,40 @@
+{
+  "payer": "DemoCare Health Plan (synthetic payer — hand-structured for hackathon demo)",
+  "policyId": "DEMO-OT-HAND-EVAL-01",
+  "policyNote": "Synthetic policy modeled on common commercial medical-necessity criteria for occupational therapy evaluation of hand/upper extremity conditions. Not a real payer document.",
+  "requestedService": "Occupational therapy evaluation",
+  "cptCode": "97003",
+  "indication": "Hand osteoarthritis with occupational functional impairment",
+  "criteria": [
+    {
+      "id": "OT-1",
+      "label": "Diagnosis documented",
+      "description": "A physician-documented diagnosis of an upper-extremity musculoskeletal condition — including osteoarthritis, tendinopathy, or post-injury dysfunction — supported by clinical examination or imaging findings.",
+      "resolvableBy": ["clinical_note", "fhir"]
+    },
+    {
+      "id": "OT-2",
+      "label": "Functional and occupational impairment",
+      "description": "Documented pain or functional limitation affecting the patient's ability to perform work duties, activities of daily living, or both. Occupational context (job title, physical demands, impact on performance) should be specified.",
+      "resolvableBy": ["clinical_note", "transcript", "patient_followup"]
+    },
+    {
+      "id": "OT-3",
+      "label": "Prior conservative treatment",
+      "description": "Documentation of a prior trial of conservative measures — e.g., analgesic pharmacotherapy, home exercise instruction, splinting, activity modification — with response documented. If no prior conservative treatment has occurred, the clinical justification for proceeding directly to formal OT evaluation must be stated.",
+      "resolvableBy": ["clinical_note", "transcript", "patient_followup", "external_record"]
+    },
+    {
+      "id": "OT-4",
+      "label": "Physician referral and goals",
+      "description": "A physician order or referral for occupational therapy evaluation, including the treatment goals and expected functional outcomes.",
+      "resolvableBy": ["clinical_note", "fhir"]
+    },
+    {
+      "id": "OT-5",
+      "label": "Rehabilitation potential",
+      "description": "Clinical indication that the patient has the cognitive and physical capacity to participate in and benefit from skilled occupational therapy, with a reasonable expectation of functional improvement.",
+      "resolvableBy": ["clinical_note", "transcript"]
+    }
+  ]
+}
