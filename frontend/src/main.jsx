@@ -1,10 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import LoopApp from './LoopApp.jsx'
+import WorkspaceApp from './WorkspaceApp.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <LoopApp />
+    <WorkspaceApp />
   </StrictMode>,
 )

@@ -1,0 +1,40 @@
+{
+  "payer": "DemoCare Health Plan (synthetic payer — hand-structured for hackathon demo)",
+  "policyId": "DEMO-MSK-KNEE-MRI-01",
+  "policyNote": "Synthetic policy modeled on common commercial medical-necessity criteria for knee MRI. Not a real payer document.",
+  "requestedService": "MRI knee without contrast",
+  "cptCode": "73721",
+  "indication": "Knee osteoarthritis with persistent pain and functional limitation",
+  "criteria": [
+    {
+      "id": "KNEE-1",
+      "label": "Symptom duration",
+      "description": "Knee pain persisting for at least 6 weeks despite conservative management.",
+      "resolvableBy": ["clinical_note", "transcript", "fhir"]
+    },
+    {
+      "id": "KNEE-2",
+      "label": "Conservative therapy trial",
+      "description": "Completion of (or documented enrollment in) at least 6 weeks of provider-directed conservative therapy — e.g., physical therapy, supervised home exercise program, or aquatic therapy — within the preceding 12 months, with provider/facility and dates identified.",
+      "resolvableBy": ["clinical_note", "transcript", "patient_followup", "external_record"]
+    },
+    {
+      "id": "KNEE-3",
+      "label": "Pharmacologic management",
+      "description": "Trial of analgesic or anti-inflammatory pharmacotherapy at scheduled dosing for at least 4 weeks, with the response (or reason for discontinuation) documented.",
+      "resolvableBy": ["clinical_note", "transcript", "fhir"]
+    },
+    {
+      "id": "KNEE-4",
+      "label": "Functional impairment",
+      "description": "Persistent pain or functional limitation interfering with daily activities despite the measures above. Flare frequency, severity, and impact on mobility should be documented.",
+      "resolvableBy": ["clinical_note", "transcript", "patient_followup"]
+    },
+    {
+      "id": "KNEE-5",
+      "label": "Red-flag and structural screen",
+      "description": "Documented physical examination showing absence of acute inflammatory arthritis (no effusion, warmth, erythema) and no neurovascular deficit requiring urgent workup. Presence of mechanical instability, locking, or locked joint routes to an expedited pathway instead.",
+      "resolvableBy": ["clinical_note", "transcript"]
+    }
+  ]
+}
