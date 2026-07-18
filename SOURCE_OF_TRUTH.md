@@ -130,12 +130,12 @@ Missing documentation is not the same as missing history.
 
 We are building one complete prior-authorization preparation loop for one orthopedic case.
 
-## **Chosen case**
+## **Chosen case** *(selected day-of — see `data/demo-plan.md` for full detail)*
 
-* Synthetic chronic low-back-pain encounter from the Abridge dataset  
-* Simulated lumbar MRI access scenario  
-* One hand-structured payer policy  
-* Approximately five coverage criteria
+* Abridge dataset record 12: "General exam — hypertension treatment initiation and chronic low back pain" (Julius Renner, 36M, synthetic) → `data/encounter.json`
+* Simulated lumbar MRI (CPT 72148) access scenario
+* One hand-structured synthetic payer policy → `data/payer-policy.json` (5 criteria: duration, conservative-therapy trial, pharmacologic management, red-flag/neuro screen, functional impairment)
+* The unresolved criterion is the conservative-therapy trial ("previously taught stretches" — by whom? when?); expected statuses, scripted patient response, and expected replan are in `data/demo-plan.md`
 
 The Abridge dataset provides anonymized encounters, clinical notes, transcripts, and related FHIR information for use in hackathon projects.
 

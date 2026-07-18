@@ -1,0 +1,40 @@
+{
+  "payer": "DemoCare Health Plan (synthetic payer — hand-structured for hackathon demo)",
+  "policyId": "DEMO-MSK-LUMBAR-MRI-01",
+  "policyNote": "Synthetic policy modeled on common commercial medical-necessity criteria for lumbar spine MRI. Not a real payer document.",
+  "requestedService": "MRI lumbar spine without contrast",
+  "cptCode": "72148",
+  "indication": "Chronic low back pain without red flags",
+  "criteria": [
+    {
+      "id": "LBP-1",
+      "label": "Symptom duration",
+      "description": "Low back pain persisting for at least 6 weeks despite conservative management.",
+      "resolvableBy": ["clinical_note", "transcript", "fhir"]
+    },
+    {
+      "id": "LBP-2",
+      "label": "Conservative therapy trial",
+      "description": "Completion of (or documented enrollment in) at least 6 weeks of provider-directed conservative therapy — e.g., physical therapy, supervised home exercise program, or chiropractic care — within the preceding 6 months, with provider/facility and dates identified.",
+      "resolvableBy": ["clinical_note", "transcript", "patient_followup", "external_record"]
+    },
+    {
+      "id": "LBP-3",
+      "label": "Pharmacologic management",
+      "description": "Trial of analgesic or anti-inflammatory pharmacotherapy, with the response (or reason for discontinuation) documented.",
+      "resolvableBy": ["clinical_note", "transcript", "fhir"]
+    },
+    {
+      "id": "LBP-4",
+      "label": "Red-flag and neurologic screen",
+      "description": "Documented screening showing absence of red flags (bowel/bladder dysfunction, saddle anesthesia, progressive motor deficit, fever, unexplained weight loss) and a current neurologic examination. Presence of red flags routes to an expedited pathway instead.",
+      "resolvableBy": ["clinical_note", "transcript"]
+    },
+    {
+      "id": "LBP-5",
+      "label": "Functional impairment",
+      "description": "Persistent pain or functional limitation interfering with daily activities or work despite the measures above.",
+      "resolvableBy": ["clinical_note", "transcript"]
+    }
+  ]
+}
