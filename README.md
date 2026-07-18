@@ -3,7 +3,7 @@
 **Prior auth from the room** — a closed-loop prior authorization agent that mines the clinical conversation for medical-necessity evidence, verifies every claim deterministically, drives the case to approval with a clinician approving every consequential step, and keeps running after a denial.
 
 > Built during the **Abridge × Anthropic × Lightspeed HealthTech Hackathon** (July 18, 2026).
-> Synthetic organizer-provided data only. Not for payer submission. Not HIPAA-validated.
+> Synthetic organizer-provided data only.
 
 ---
 
@@ -281,14 +281,6 @@ Uses [`synthetic-ambient-fhir-25/`](synthetic-ambient-fhir-25/) — 25 synthetic
 | 2021-04-06 · chronic low back pain | Primary demo: `spoken_only` gap — ibuprofen trial duration is in the transcript, absent from the note; encounter FHIR missing the LBP condition |
 | 2025-07-13 · HTN + LBP | Control case: mostly `documented` — the agent does not invent gaps that aren't there |
 | 2016-08-30 · knee OA | Alternate conservative-therapy pattern under the same policy engine |
-
----
-
-## Honest claims
-
-**Say:** prototype · synthetic data only · hand-structured criteria · corpus-fit priors · flywheel that logs toward a future learned model.
-
-**Never claim:** HIPAA compliance · real payer connectivity · clinical validation · autonomous submission without human approval · a trained world model.
 
 ---
 
