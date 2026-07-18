@@ -269,7 +269,7 @@ export default function CaseWorkspace({ onOpenCase }) {
 
             <div className="prx-case-list" aria-live="polite">
               {visibleCases.map((caseItem) => (
-                <article className="prx-case-row" key={caseItem.id}>
+                <article className={`prx-case-row is-${caseItem.status}`} key={caseItem.id}>
                   <div className="prx-case-patient">
                     <div className="prx-case-avatar">{caseItem.initials}</div>
                     <div>
