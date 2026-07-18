@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from actions import pending_artifacts
-from loader import PRIMARY_ENCOUNTER_ID, list_encounters, load_policy
+from loader import PRIMARY_ENCOUNTER_ID, list_encounters, load_layers, load_policy
 from log import read_tuples
 from mine import live_mine_available
 from state import analyze_encounter, analyze_transcript, apply_decision, default_encounter_id, get_session
@@ -66,6 +66,21 @@ def encounters() -> dict[str, Any]:
         "encounters": list_encounters(),
         "default_encounter_id": default_encounter_id(),
         "policy": load_policy(),
+    }
+
+
+@app.get("/api/encounter")
+def encounter_detail(encounter_id: str) -> dict[str, Any]:
+    """Transcript/note/metadata for one encounter — no analysis, instant."""
+    try:
+        layers = load_layers(encounter_id)
+    except KeyError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    return {
+        "id": layers["id"],
+        "metadata": layers["metadata"],
+        "transcript": layers["transcript"],
+        "note": layers["note"],
     }
 
 

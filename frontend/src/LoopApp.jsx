@@ -70,10 +70,36 @@ class Component extends DCLogic {
     liveTranscript: null,      // inline-recorded transcript (Abhay's inline record flow)
     liveNote: null,
     liveGapCallout: null,
+    visits: [],                // dated encounters from /api/encounters
+    selectedVisitId: null,     // visit whose transcript is being viewed
+    analyzedVisitId: null,     // visit the current case state was analyzed from
   };
 
   set(patch) { this.setState(s => ({ steps: { ...s.steps, ...patch } })); }
   go(screen) { this.setState({ screen }); }
+
+  // ---- dated-visit browser: view any encounter's transcript; analyze on demand ----
+  selectVisit(id) {
+    if (!id || id === this.state.selectedVisitId) return;
+    this.setState({ selectedVisitId: id });
+    this.api('encounter?encounter_id=' + encodeURIComponent(id))
+      .then(res => this.setState({ liveTranscript: res.transcript || null, liveNote: res.note || null }))
+      .catch(() => {});
+  }
+
+  analyzeVisit(id) {
+    if (!id) return;
+    this.setState({ engine: 'connecting' });
+    this.api('analyze', { encounter_id: id, session_id: 'design', live_mine: false })
+      .then(res => {
+        this._applyState(res);
+        this.setState({
+          analyzedVisitId: id,
+          steps: { addendumApproved: false, patientAsked: false, patientAnswered: false, recordRequested: false, recordReceived: false, packetGenerated: false, submitted: false, payerResponse: null, appealLetterApproved: false, p2pPrepped: false, appealSubmitted: false },
+        });
+      })
+      .catch(() => this.setState({ engine: 'offline' }));
+  }
 
   // ---- live engine bridge (FastAPI backend via vite /api proxy) ----
   api(path, body) {
@@ -103,6 +129,9 @@ class Component extends DCLogic {
     this.api('analyze', { encounter_id: ENC, session_id: 'design', live_mine: false })
       .then(res => this._applyState(res))
       .catch(() => this.setState({ engine: 'offline' }));
+    this.api('encounters')
+      .then(res => this.setState({ visits: res.encounters || [], selectedVisitId: ENC, analyzedVisitId: ENC }))
+      .catch(() => {});
     // World-model priors + payer intel: static artifacts refreshed by the cron
     // jobs in ops/CRON.md; the UI reads whatever the last sync produced.
     fetch('/model/world_model_priors.json').then(r => r.json())
@@ -547,6 +576,16 @@ class Component extends DCLogic {
       goEncounter: () => this.go('encounter'),
       goWorld: () => this.go('world'),
       goDecision: () => this.go('decision'),
+
+      // dated-visit browser
+      visits: (this.state.visits || []).map(v => ({
+        id: v.id, date: v.date, title: v.visit_title,
+        selected: v.id === this.state.selectedVisitId,
+        analyzed: v.id === this.state.analyzedVisitId,
+      })),
+      visitNeedsAnalyze: !!this.state.selectedVisitId && this.state.selectedVisitId !== this.state.analyzedVisitId,
+      selectVisit: (id) => this.selectVisit(id),
+      analyzeCurrentVisit: () => this.analyzeVisit(this.state.selectedVisitId),
       approveAddendum: () => { this.set({ addendumApproved: true }); this.decide('conservative_care', 'approve'); },
       patientRespond: () => { this.set({ patientAnswered: true }); this.decide('physical_therapy', 'answer', '~8 weeks at Metro Physical Therapy, Jan–Mar.'); },
       receiveRecord: () => { this.set({ recordReceived: true }); },
@@ -671,18 +710,59 @@ export default function LoopApp() {
   const [showRecord, setShowRecord] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
 
-  // Recording state (inline in encounter page)
+  // Recording state (inline in encounter page) — one-button flow.
+  // Web Speech transcribes in real time; Claude diarization streams in a beat
+  // behind it, labeling DR/PT turns automatically (no manual speaker toggle).
   const [recRecording, setRecRecording] = useState(false)
-  const [recLines, setRecLines] = useState([])
+  const [recRaw, setRecRaw] = useState('')           // all finalized speech, in order
+  const [recLabeled, setRecLabeled] = useState([])   // diarized turns from Claude
+  const [recLabeledUpTo, setRecLabeledUpTo] = useState(0) // chars of recRaw covered by recLabeled
   const [recInterim, setRecInterim] = useState('')
-  const [recSpeaker, setRecSpeaker] = useState('DR')
   const [recNote, setRecNote] = useState('')
   const [recSupported, setRecSupported] = useState(true)
   const [diarizing, setDiarizing] = useState(false)
   const recRef = useRef(null)
-  const recSpeakerRef = useRef('DR')
+  const recActiveRef = useRef(false)                 // user intent (survives SR auto-timeouts)
+  const recRawRef = useRef('')
+  const diarizeRef = useRef({ busy: false, timer: null, seq: 0 })
 
-  useEffect(() => { recSpeakerRef.current = recSpeaker }, [recSpeaker])
+  useEffect(() => { recRawRef.current = recRaw }, [recRaw])
+
+  async function runDiarize() {
+    const d = diarizeRef.current
+    const raw = recRawRef.current
+    if (d.busy || !raw.trim()) return
+    d.busy = true
+    const sent = raw.length
+    const seq = ++d.seq
+    setDiarizing(true)
+    try {
+      const res = await fetch('/api/diarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript: raw }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        if (seq === d.seq && data.lines?.length) {
+          setRecLabeled(data.lines)
+          setRecLabeledUpTo(sent)
+        }
+      }
+    } catch (e) { console.warn('diarize', e) }
+    finally {
+      d.busy = false
+      setDiarizing(false)
+      // speech kept arriving while we labeled — go again for the tail
+      if (recRawRef.current.length > sent) scheduleDiarize(600)
+    }
+  }
+
+  function scheduleDiarize(ms = 1400) {
+    const d = diarizeRef.current
+    if (d.timer) clearTimeout(d.timer)
+    d.timer = setTimeout(() => runDiarize(), ms)
+  }
 
   useEffect(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
@@ -693,55 +773,49 @@ export default function LoopApp() {
     r.lang = 'en-US'
     r.onresult = (e) => {
       let fin = '', int = ''
-      for (const res of Array.from(e.results)) {
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const res = e.results[i]
         if (res.isFinal) fin += res[0].transcript + ' '
         else int += res[0].transcript
       }
-      if (fin) setRecLines(prev => {
-        const spk = recSpeakerRef.current
-        const last = prev[prev.length - 1]
-        if (last && last.speaker === spk) return [...prev.slice(0, -1), { speaker: spk, text: last.text + fin }]
-        return [...prev, { speaker: spk, text: fin }]
-      })
+      if (fin) { setRecRaw(prev => prev + fin); scheduleDiarize() }
       setRecInterim(int)
     }
     r.onerror = (e) => { if (e.error !== 'no-speech') console.warn('SR', e.error) }
-    r.onend = () => { setRecRecording(false); setRecInterim('') }
+    r.onend = () => {
+      setRecInterim('')
+      // Chrome times SR out after silence — restart while the user is still recording
+      if (recActiveRef.current) { try { r.start() } catch { /* already restarting */ } }
+      else setRecRecording(false)
+    }
     recRef.current = r
-    return () => r.abort()
+    return () => { recActiveRef.current = false; r.abort() }
   }, [])
 
   function toggleRec() {
     const r = recRef.current
     if (!r) return
-    if (recRecording) { r.stop(); setRecRecording(false) }
-    else { r.start(); setRecRecording(true) }
+    if (recRecording) {
+      recActiveRef.current = false
+      r.stop(); setRecRecording(false)
+      scheduleDiarize(200) // final labeling pass over the full take
+    } else {
+      recActiveRef.current = true
+      r.start(); setRecRecording(true)
+    }
   }
 
-  function switchSpeaker(spk) {
-    setRecSpeaker(spk)
-    recSpeakerRef.current = spk
+  function clearRec() {
+    setRecRaw(''); setRecLabeled([]); setRecLabeledUpTo(0); setRecInterim('')
+    diarizeRef.current.seq++ // invalidate any in-flight labeling
   }
 
-  async function autoDiarize() {
-    const raw = recLines.map(l => l.text.trim()).join(' ')
-    if (!raw.trim()) return
-    setDiarizing(true)
-    try {
-      const res = await fetch('/api/diarize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript: raw }),
-      })
-      if (!res.ok) throw new Error('diarize ' + res.status)
-      const data = await res.json()
-      if (data.lines?.length) setRecLines(data.lines)
-    } catch (e) { console.error(e) }
-    finally { setDiarizing(false) }
-  }
-
-  const recRawTranscript = recLines.map(l => `${l.speaker}: ${l.text.trim()}`).join('\n')
-  const recWords = recLines.reduce((n, l) => n + l.text.trim().split(/\s+/).length, 0)
+  const recTail = recRaw.slice(recLabeledUpTo).trim()
+  const recRawTranscript = [
+    ...recLabeled.map(l => `${l.speaker}: ${l.text.trim()}`),
+    ...(recTail ? [recTail] : []),
+  ].join('\n')
+  const recWords = recRaw.trim() ? recRaw.trim().split(/\s+/).length : 0
 
   const handleAnalyzeTranscript = useCallback(async (transcript, note) => {
     setAnalyzing(true)
@@ -922,16 +996,29 @@ export default function LoopApp() {
                   🎙 Record
                 </button>
               </div>
-              {!showRecord && <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.62 0.015 258);`)}>SRC · ambient recording</span>}
-              {showRecord && recLines.length > 0 && !recRecording && (
-                <button
-                  onClick={autoDiarize}
-                  disabled={diarizing}
-                  style={css(`padding:5px 11px;border-radius:7px;border:1px solid oklch(0.87 0.04 250);background:oklch(0.97 0.02 250);font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:500;color:oklch(0.45 0.12 255);cursor:${diarizing ? 'not-allowed' : 'pointer'};`)}>
-                  {diarizing ? '⟳ Labeling…' : '✦ Auto-label speakers'}
-                </button>
+              {!showRecord && (V.visitNeedsAnalyze
+                ? <button onClick={V.analyzeCurrentVisit} style={css(`padding:5px 11px;border-radius:7px;border:1px solid oklch(0.87 0.04 250);background:oklch(0.97 0.02 250);font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:600;color:oklch(0.45 0.12 255);cursor:pointer;`)}>Analyze this visit →</button>
+                : <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.62 0.015 258);`)}>SRC · ambient recording</span>)}
+              {showRecord && diarizing && (
+                <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.45 0.12 255);display:flex;align-items:center;gap:5px;`)}>✦ labeling speakers…</span>
+              )}
+              {showRecord && !diarizing && recWords > 0 && !recRecording && (
+                <button onClick={clearRec} style={css(`padding:4px 10px;border-radius:7px;border:1px solid oklch(0.91 0.008 255);background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:11px;color:oklch(0.55 0.02 258);cursor:pointer;`)}>Clear</button>
               )}
             </div>
+
+            {/* Dated visits — view any encounter's transcript */}
+            {!showRecord && V.visits.length > 0 && (
+              <div style={css(`display:flex;gap:6px;overflow-x:auto;padding:10px 14px 6px;border-bottom:1px solid oklch(0.95 0.006 258);`)}>
+                {V.visits.map(v => (
+                  <button key={v.id} onClick={() => V.selectVisit(v.id)} title={v.title}
+                    style={css(`flex-shrink:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:7px 11px;border-radius:8px;cursor:pointer;transition:all .12s;border:1px solid ${v.selected ? 'oklch(0.55 0.13 250)' : 'oklch(0.91 0.008 255)'};background:${v.selected ? 'oklch(0.97 0.02 250)' : '#fff'};`)}>
+                    <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:${v.selected ? 'oklch(0.45 0.12 255)' : 'oklch(0.55 0.02 258)'};`)}>{v.date}{v.analyzed ? ' · analyzed' : ''}</span>
+                    <span style={css(`font-size:11px;color:oklch(0.45 0.02 258);max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;`)}>{v.title}</span>
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Transcript view */}
             {!showRecord && (
@@ -948,54 +1035,58 @@ export default function LoopApp() {
             {/* Record view */}
             {showRecord && (
               <div style={css(`padding:12px 14px;display:flex;flex-direction:column;gap:12px;`)}>
-                {/* Controls */}
-                <div style={css(`display:flex;align-items:center;gap:10px;`)}>
+                {/* Controls — one red button; speakers are labeled automatically */}
+                <div style={css(`display:flex;align-items:center;gap:14px;`)}>
                   <button
                     onClick={toggleRec}
-                    style={css(`width:42px;height:42px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:${recRecording ? 'oklch(0.55 0.12 25)' : 'oklch(0.45 0.12 255)'};color:#fff;box-shadow:${recRecording ? '0 0 0 6px oklch(0.55 0.12 25 / 0.15)' : 'none'};`)}>
-                    {recRecording ? '⏹' : '🎙'}
+                    aria-label={recRecording ? 'Stop recording' : 'Start recording'}
+                    style={css(`width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:oklch(0.55 0.19 25);color:#fff;transition:box-shadow .2s;box-shadow:${recRecording ? '0 0 0 8px oklch(0.55 0.19 25 / 0.18)' : '0 2px 8px oklch(0.55 0.19 25 / 0.35)'};${recRecording ? 'animation:prx-pulse 1.6s infinite;' : ''}`)}>
+                    {recRecording
+                      ? <span style={css(`width:18px;height:18px;border-radius:4px;background:#fff;`)}></span>
+                      : <span style={css(`width:20px;height:20px;border-radius:50%;background:#fff;`)}></span>}
                   </button>
-                  <div style={css(`display:flex;background:oklch(0.95 0.006 258);border-radius:8px;padding:2px;gap:2px;`)}>
-                    {['DR','PT'].map(spk => (
-                      <button key={spk} onClick={() => switchSpeaker(spk)}
-                        style={css(`padding:5px 14px;border-radius:6px;border:none;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;transition:all .12s;background:${recSpeaker===spk?'#fff':'transparent'};color:${recSpeaker===spk?(spk==='DR'?'oklch(0.45 0.12 255)':'oklch(0.5 0.09 300)'):'oklch(0.6 0.02 258)'};box-shadow:${recSpeaker===spk?'0 1px 3px oklch(0.3 0.02 258 / 0.1)':'none'};`)}>
-                        {spk==='DR'?'Doctor':'Patient'}
-                      </button>
-                    ))}
+                  <div style={css(`display:flex;flex-direction:column;gap:3px;`)}>
+                    <span style={css(`font-size:13px;font-weight:600;color:oklch(0.34 0.02 258);`)}>
+                      {recRecording ? 'Recording — transcribing live' : (recWords > 0 ? 'Recording stopped' : 'Tap to record the visit')}
+                    </span>
+                    <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.62 0.015 258);`)}>
+                      doctor / patient separated automatically · live transcription
+                    </span>
                   </div>
-                  {recRecording && <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.55 0.12 25);display:flex;align-items:center;gap:5px;`)}><span style={css(`width:6px;height:6px;border-radius:50%;background:oklch(0.55 0.12 25);animation:prx-pulse 1s infinite;`)}></span>Live</span>}
-                  {recWords > 0 && <span style={css(`margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.65 0.015 258);`)}>{recWords}w</span>}
+                  {recRecording && <span style={css(`margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.55 0.19 25);display:flex;align-items:center;gap:5px;`)}><span style={css(`width:6px;height:6px;border-radius:50%;background:oklch(0.55 0.19 25);animation:prx-pulse 1s infinite;`)}></span>LIVE</span>}
+                  {recWords > 0 && !recRecording && <span style={css(`margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.65 0.015 258);`)}>{recWords}w</span>}
                 </div>
 
-                {/* Live transcript */}
+                {/* Live transcript — labeled turns stream in behind the live text */}
                 <div style={css(`min-height:180px;max-height:320px;overflow:auto;display:flex;flex-direction:column;gap:2px;`)}>
-                  {recLines.length === 0 && !recInterim && (
-                    <span style={css(`font-size:12px;color:oklch(0.7 0.015 258);padding:6px 2px;`)}>Press 🎙 to start, or paste text below.</span>
+                  {recWords === 0 && !recInterim && (
+                    <span style={css(`font-size:12px;color:oklch(0.7 0.015 258);padding:6px 2px;`)}>Tap the red button and just talk — turns are transcribed live and labeled Doctor/Patient automatically.</span>
                   )}
-                  {recLines.map((l, i) => (
+                  {recLabeled.map((l, i) => (
                     <div key={i} style={css(`display:flex;gap:10px;padding:6px 8px;border-radius:7px;background:${l.speaker==='PT'?'oklch(0.985 0.005 300 / 0.5)':'transparent'};`)}>
                       <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:${l.speaker==='DR'?'oklch(0.45 0.12 255)':'oklch(0.5 0.09 300)'};flex-shrink:0;width:28px;padding-top:2px;`)}>{l.speaker}</span>
                       <span style={css(`font-size:12px;line-height:1.5;color:oklch(0.34 0.02 258);`)}>{l.text.trim()}</span>
                     </div>
                   ))}
+                  {recTail && (
+                    <div style={css(`display:flex;gap:10px;padding:6px 8px;`)}>
+                      <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:oklch(0.7 0.015 258);flex-shrink:0;width:28px;padding-top:2px;`)}>…</span>
+                      <span style={css(`font-size:12px;line-height:1.5;color:oklch(0.5 0.02 258);`)}>{recTail}</span>
+                    </div>
+                  )}
                   {recInterim && (
                     <div style={css(`display:flex;gap:10px;padding:6px 8px;opacity:0.5;`)}>
-                      <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:${recSpeaker==='DR'?'oklch(0.45 0.12 255)':'oklch(0.5 0.09 300)'};flex-shrink:0;width:28px;padding-top:2px;`)}>{recSpeaker}</span>
+                      <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:oklch(0.7 0.015 258);flex-shrink:0;width:28px;padding-top:2px;`)}>●</span>
                       <span style={css(`font-size:12px;line-height:1.5;color:oklch(0.34 0.02 258);font-style:italic;`)}>{recInterim}</span>
                     </div>
                   )}
                 </div>
 
-                {/* Paste fallback */}
+                {/* Paste fallback (no Web Speech in this browser) — still auto-labeled */}
                 {!recSupported && (
                   <textarea
-                    placeholder={'DR: text...\nPT: text...'}
-                    onChange={e => {
-                      setRecLines(e.target.value.split('\n').filter(l=>l.trim()).map(l=>{
-                        const m=l.match(/^(DR|PT)[:\s]+(.+)/i)
-                        return m?{speaker:m[1].toUpperCase(),text:m[2]}:{speaker:'DR',text:l}
-                      }))
-                    }}
+                    placeholder="Paste the conversation here — speakers are labeled automatically."
+                    onChange={e => { setRecRaw(e.target.value); setRecLabeled([]); setRecLabeledUpTo(0); scheduleDiarize(800) }}
                     style={css(`width:100%;min-height:80px;border:1px solid oklch(0.91 0.008 255);border-radius:8px;padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.6;color:oklch(0.34 0.02 258);outline:none;resize:vertical;box-sizing:border-box;`)}
                   />
                 )}
