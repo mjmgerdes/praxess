@@ -2,60 +2,39 @@ import React from 'react'
 
 const OUTCOMES = {
   favorable: {
-    eyebrow: 'FAVORED OBSERVATION',
     title: 'Approval path strengthens',
     detail: 'The next review starts from a better-supported case.',
     tone: 'positive',
-    mix: ['strong', 'medium', 'low'],
-    mixLabel: 'Directional rollout: approval path favored; more-information and denial paths remain possible.',
   },
   verification: {
-    eyebrow: 'FAVORED OBSERVATION',
     title: 'Verification path opens',
     detail: 'New information identifies the next resolvable evidence source.',
     tone: 'information',
-    mix: ['medium', 'strong', 'low'],
-    mixLabel: 'Directional rollout: information gathering favored; approval remains downstream of verification.',
   },
   review: {
-    eyebrow: 'FAVORED OBSERVATION',
     title: 'Human review becomes actionable',
     detail: 'The case advances without silently converting uncertainty into fact.',
     tone: 'positive',
-    mix: ['strong', 'medium', 'low'],
-    mixLabel: 'Directional rollout: review-ready path favored; payer outcomes remain unresolved.',
   },
   more: {
-    eyebrow: 'LIKELY NEXT OBSERVATION',
     title: 'More information requested',
     detail: 'The unresolved evidence returns as a new operational task.',
     tone: 'warning',
-    mix: ['low', 'strong', 'medium'],
-    mixLabel: 'Directional rollout: more-information path favored over approval or denial.',
   },
   denial: {
-    eyebrow: 'LIKELY NEXT OBSERVATION',
     title: 'Denial risk remains high',
     detail: 'Submitting the current state preserves the evidence gap.',
     tone: 'danger',
-    mix: ['low', 'medium', 'strong'],
-    mixLabel: 'Directional rollout: denial path favored over approval or more-information outcomes.',
   },
   waiting: {
-    eyebrow: 'LIKELY NEXT OBSERVATION',
     title: 'State holds',
-    detail: 'No new observation arrives, so the model has nothing to replan against.',
+    detail: 'No new observation arrives, so there is nothing to replan against.',
     tone: 'neutral',
-    mix: ['low', 'medium', 'medium'],
-    mixLabel: 'Directional rollout: no meaningful state change is favored.',
   },
   submitted: {
-    eyebrow: 'NEXT OBSERVATION',
     title: 'Payer determination',
     detail: 'The case stays alive until the payer response updates the world state.',
     tone: 'information',
-    mix: ['strong', 'medium', 'low'],
-    mixLabel: 'Directional rollout after submission: approval path favored, with information request and denial still possible.',
   },
 }
 
@@ -73,28 +52,6 @@ function outcomeFor(candidate, phase) {
   if (key === 'HOLD') return OUTCOMES.waiting
   if (key === 'ASK_CLINICIAN') return candidate.recommended ? OUTCOMES.verification : OUTCOMES.waiting
   return candidate.recommended ? OUTCOMES.favorable : OUTCOMES.waiting
-}
-
-function DirectionalMix({ outcome }) {
-  const widths = { strong: 56, medium: 29, low: 15 }
-  return (
-    <div className="prx-outcome-mix" aria-label={outcome.mixLabel}>
-      <div className="prx-outcome-mix-bar" aria-hidden="true">
-        {outcome.mix.map((weight, index) => (
-          <span
-            key={`${weight}-${index}`}
-            className={`prx-mix-segment prx-mix-${index}`}
-            style={{ flexBasis: `${widths[weight]}%` }}
-          />
-        ))}
-      </div>
-      <div className="prx-outcome-legend" aria-hidden="true">
-        <span><i className="prx-legend-approve" />approve</span>
-        <span><i className="prx-legend-more" />more info</span>
-        <span><i className="prx-legend-deny" />deny</span>
-      </div>
-    </div>
-  )
 }
 
 function FlowArrow({ active }) {
@@ -132,42 +89,36 @@ export default function DecisionRollout({
     <section className="prx-rollout" aria-labelledby="decision-rollout-title">
       <header className="prx-rollout-header">
         <div>
-          <div className="prx-kicker">03 · World-model rollout</div>
-          <h1 id="decision-rollout-title">Simulating futures from the living case state</h1>
+          <div className="prx-kicker">03 · Decision engine</div>
+          <h1 id="decision-rollout-title">Next best action</h1>
           <p>
-            Roll safe actions forward. Predict the next case state. Judge each trajectory. Route the argmax through a human gate.
+            Each safe action is rolled forward and scored by how it changes the case. Praxess recommends one; a person approves it.
           </p>
-        </div>
-        <div className="prx-model-status" aria-label="World model status">
-          <span className="prx-model-status-dot" />
-          <span>MODEL ACTIVE</span>
-          <small>{candidates.length} futures · {stateVersion}</small>
         </div>
       </header>
 
       <div className="prx-decision-rule">
-        <span className="prx-decision-rule-label">DECISION RULE</span>
+        <span className="prx-decision-rule-label">SCORING</span>
         <span>EV(a | s) = {weights.approval}·Δ approval + {weights.info}·information − {weights.time}·delay − {weights.burden}·burden</span>
         <small title={`${fitMeta} · ${flywheel}`}>{fitMeta} · {flywheel}</small>
       </div>
 
       <div className="prx-rollout-stage">
         <div className="prx-rollout-axis" aria-hidden="true">
-          <span>CURRENT WORLD</span>
-          <span>CANDIDATE ACTION</span>
-          <span>PREDICTED WORLD</span>
-          <span>NEXT OBSERVATION</span>
+          <span>Case today</span>
+          <span>Candidate action</span>
+          <span>Predicted state</span>
+          <span>Likely payer response</span>
         </div>
 
         <div className="prx-rollout-grid">
           <div className="prx-state-core-wrap">
             <div className="prx-state-core">
-              <span className="prx-node-label">S<sub>t</sub> · CASE STATE</span>
+              <span className="prx-node-label">Case state</span>
               <strong style={{ color: readinessColor }}>{readinessPct}%</strong>
               <span className="prx-state-caption">evidence readiness</span>
               <div className="prx-state-metrics">
                 <span>{openCount} open</span>
-                <span>{stateVersion}</span>
               </div>
               <div className="prx-state-criteria" aria-label="Current criterion states">
                 {criteria.map((criterion) => (
@@ -191,11 +142,10 @@ export default function DecisionRollout({
                 <article
                   className={`prx-trajectory ${candidate.recommended ? 'is-selected' : ''}`}
                   key={candidate.key + candidate.title}
-                  aria-label={`${candidate.recommended ? 'Selected trajectory. ' : ''}${candidate.title}. Predicted state: ${candidate.delta}. ${outcome.title}.`}
+                  aria-label={`${candidate.recommended ? 'Recommended. ' : ''}${candidate.title}. Predicted state: ${candidate.delta}. ${outcome.title}.`}
                 >
                   <div className="prx-action-node">
-                    {candidate.recommended && <span className="prx-argmax">ARGMAX · SELECTED</span>}
-                    <span className="prx-node-label">ACTION · {candidate.kind}</span>
+                    {candidate.recommended && <span className="prx-argmax">Recommended</span>}
                     <strong>{candidate.title}</strong>
                     <div className="prx-ev-row">
                       <span>EV(a | s)</span>
@@ -209,7 +159,6 @@ export default function DecisionRollout({
                   <FlowArrow active={candidate.recommended} />
 
                   <div className="prx-future-node">
-                    <span className="prx-node-label">S<sub>t+1</sub> · PREDICTED STATE</span>
                     <strong>{candidate.delta}</strong>
                     <p>{candidate.desc}</p>
                     <small>{candidate.evTerms}</small>
@@ -218,10 +167,8 @@ export default function DecisionRollout({
                   <FlowArrow active={candidate.recommended} />
 
                   <div className={`prx-outcome-node tone-${outcome.tone}`}>
-                    <span className="prx-node-label">{outcome.eyebrow}</span>
                     <strong>{outcome.title}</strong>
                     <p>{outcome.detail}</p>
-                    <DirectionalMix outcome={outcome} />
                   </div>
                 </article>
               )
@@ -232,20 +179,20 @@ export default function DecisionRollout({
 
       <div className="prx-execution-layer">
         <div>
-          <span className="prx-node-label">EXECUTION LAYER · HUMAN GATE</span>
+          <span className="prx-node-label">Human approval</span>
           <strong>{selected?.title}</strong>
-          <p>Praxess proposes the route. A person commits the consequential action.</p>
+          <p>Praxess proposes. A person commits the action.</p>
         </div>
         {selected?.cta && (
           <button type="button" onClick={selected.onExecute}>
-            Execute · {selected.cta}
+            {selected.cta}
             <ExecuteIcon />
           </button>
         )}
       </div>
 
       <p className="prx-rollout-disclaimer">
-        Directional prototype rollouts · relative value scores and outcome mix are not clinically or payer calibrated.
+        Prototype — value scores are directional, not clinically or payer calibrated.
       </p>
     </section>
   )

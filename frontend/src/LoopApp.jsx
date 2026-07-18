@@ -972,7 +972,7 @@ export default function LoopApp({ onBackToWorkspace }) {
     </nav>
 
     
-    <main style={css(`flex:1;overflow:auto;background-image:radial-gradient(oklch(0.9 0.008 255) 0.8px, transparent 0.8px);background-size:22px 22px;background-position:-1px -1px;`)}>
+    <main style={css(`flex:1;overflow:auto;`)}>
     <div className={V.isDecision ? 'prx-decision-main' : undefined} style={css(`max-width:1080px;margin:0 auto;padding:${V.isDecision ? '8px 32px 18px' : '28px 32px 56px'};`)}>
 
       
@@ -1203,7 +1203,6 @@ export default function LoopApp({ onBackToWorkspace }) {
         </div>
 
         <div style={css(`margin-top:18px;background:linear-gradient(135deg, oklch(0.45 0.12 255), oklch(0.5 0.1 235));border-radius:14px;padding:20px 22px;display:flex;align-items:center;gap:20px;color:#fff;position:relative;overflow:hidden;`)}>
-          <div style={css(`position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,0.12) 0.8px,transparent 0.8px);background-size:16px 16px;opacity:0.5;`)}></div>
           <div style={css(`position:relative;flex:1;`)}>
             <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;opacity:0.8;margin-bottom:6px;`)}>Recommended next action</div>
             <div style={css(`font-size:18px;font-weight:600;letter-spacing:-0.01em;`)}>{V.recTitle}</div>
