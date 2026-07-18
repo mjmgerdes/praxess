@@ -823,7 +823,14 @@ export default function LoopApp({ onBackToWorkspace }) {
       inst._applyState(data)
       inst.setState({
         screen: 'encounter',
-        steps: { addendumApproved: false, patientAsked: false, patientAnswered: false, recordRequested: false, recordReceived: false, packetGenerated: false, submitted: false, payerResponse: null },
+        steps: {
+          addendumApproved: false, patientAsked: false,
+          outreachChannel: 'sms', outreachApproved: false,
+          patientAnswered: false, recordRequested: false,
+          recordReceived: false, packetGenerated: false,
+          submitted: false, payerResponse: null,
+          appealLetterApproved: false, p2pPrepped: false, appealSubmitted: false,
+        },
       })
       setShowRecord(false)
     } catch (e) { console.error(e) }

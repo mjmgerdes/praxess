@@ -17,13 +17,44 @@ def live_mine_available() -> bool:
     return bool(os.environ.get("ANTHROPIC_API_KEY"))
 
 
+import re as _re
+
+
+def _parse_labeled_transcript(transcript: str) -> list[dict] | None:
+    """If every non-empty line starts with DR: or PT:, parse and return turns.
+
+    Returns None when the transcript is unlabeled raw speech.
+    """
+    lines = [l.strip() for l in transcript.splitlines() if l.strip()]
+    if not lines:
+        return None
+    parsed = []
+    for line in lines:
+        m = _re.match(r'^(DR|PT|Doctor|Patient|Provider|Clinician)[:\s]+(.+)', line, _re.IGNORECASE)
+        if not m:
+            return None  # at least one unlabeled line → need Claude
+        spk = "PT" if m.group(1).upper().startswith("P") else "DR"
+        parsed.append({"speaker": spk, "text": m.group(2).strip()})
+    return parsed
+
+
 def diarize(transcript: str) -> list[dict]:
     """Use Claude to label speaker turns in a raw transcript.
 
     Returns a list of {speaker: 'DR'|'PT', text: str} dicts.
-    Falls back to a single unlabeled block if Claude is unavailable or fails.
+    If the transcript already carries DR:/PT: prefixes the labels are parsed
+    directly without an API call.  Falls back gracefully when Claude is
+    unavailable.
     """
+    # Fast path: transcript already has speaker labels (e.g. from the Abridge
+    # fixture or from a previous diarize pass that was formatted and re-sent).
+    pre_labeled = _parse_labeled_transcript(transcript)
+    if pre_labeled is not None:
+        return pre_labeled
+
     if not live_mine_available():
+        # No API key and no labels — return as a single unlabeled DR block so
+        # the UI at least shows the text rather than nothing.
         return [{"speaker": "DR", "text": transcript.strip()}]
 
     try:
