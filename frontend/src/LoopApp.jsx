@@ -80,6 +80,8 @@ class Component extends DCLogic {
       appealSubmitted: false,
       denialReason: '',          // WHY, from the payer's denial letter (provider-entered)
       denialRef: '',             // payer's denial reference number
+      denialCaptured: false,     // reason entered -> appeal draft generated
+      appealUpheld: false,       // re-determination came back denied again
       submitPortalOpen: false,   // manual-submission panel (portal link + confirmation)
     },
     engine: 'connecting',      // live | offline | connecting — honest indicator of backend link
@@ -636,8 +638,12 @@ class Component extends DCLogic {
       confirmSubmitted: () => { this.set({ submitted: true, submitPortalOpen: false }); this.go('lifecycle'); },
       respApprove: () => this.set({ payerResponse: 'approve' }),
       respMore: () => this.set({ payerResponse: 'more' }),
-      respDeny: () => this.set({ payerResponse: 'deny' }),
-      respReset: () => this.set({ payerResponse: null, appealLetterApproved: false, p2pPrepped: false, appealSubmitted: false }),
+      respDeny: () => this.set({
+        payerResponse: 'deny',
+        // prefill with the modal denial for this criteria family; the provider edits to match the payer's letter
+        denialReason: s.denialReason || 'The records do not document a sufficient trial of conservative therapy prior to advanced imaging.',
+      }),
+      respReset: () => this.set({ payerResponse: null, appealLetterApproved: false, p2pPrepped: false, appealSubmitted: false, denialCaptured: false, appealUpheld: false, denialReason: '', denialRef: '' }),
 
       // ---- post-denial workspace: appeal letter + peer-to-peer prep ----
       isDenied: pr === 'deny',
@@ -660,6 +666,11 @@ class Component extends DCLogic {
       denialRef: s.denialRef,
       setDenialReason: (v) => this.set({ denialReason: v }),
       setDenialRef: (v) => this.set({ denialRef: v }),
+      denialCaptured: s.denialCaptured,
+      captureDenial: () => { this.set({ denialCaptured: true }); },
+      editDenial: () => { this.set({ denialCaptured: false }); },
+      appealUpheld: s.appealUpheld,
+      appealDeniedAgain: () => { this.set({ appealUpheld: true }); },
       downloadAppealPdf: () => {
         const cr = this.criteriaRaw().map(c => ({
           id: c.id, label: c.label, packetTag: this.statusMeta(c.status).label,
@@ -1590,30 +1601,47 @@ export default function LoopApp({ onBackToWorkspace }) {
               <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.55 0.12 25);`)}>appeal deadline · 14 days</span>
             </div>
 
-            {/* The denial is an observation — capture WHY from the payer's letter */}
-            <div style={css(`background:#fff;border:1px solid oklch(0.88 0.03 25);border-radius:11px;padding:14px 16px;margin-bottom:16px;`)}>
-              <div style={css(`display:flex;gap:12px;align-items:flex-start;`)}>
-                <div style={css(`flex:1;`)}>
-                  <label style={css(`display:block;font-size:12.5px;font-weight:600;color:oklch(0.34 0.02 258);margin-bottom:6px;`)}>Denial reason — from the payer's letter</label>
-                  <textarea
-                    value={V.denialReason}
-                    onChange={e => V.setDenialReason(e.target.value)}
-                    placeholder="Paste or type the payer's stated reason, e.g. “The records do not document a sufficient trial of conservative therapy.”"
-                    style={css(`width:100%;min-height:52px;border:1px solid oklch(0.9 0.01 255);border-radius:8px;padding:9px 11px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;line-height:1.5;color:oklch(0.32 0.02 258);outline:none;resize:vertical;box-sizing:border-box;`)}
-                  />
-                </div>
-                <div style={css(`width:190px;`)}>
-                  <label style={css(`display:block;font-size:12.5px;font-weight:600;color:oklch(0.34 0.02 258);margin-bottom:6px;`)}>Denial reference</label>
-                  <input
-                    value={V.denialRef}
-                    onChange={e => V.setDenialRef(e.target.value)}
-                    placeholder="e.g. MHP-2026-0718-114"
-                    style={css(`width:100%;border:1px solid oklch(0.9 0.01 255);border-radius:8px;padding:9px 11px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(0.32 0.02 258);outline:none;box-sizing:border-box;`)}
-                  />
-                  <div style={css(`margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.62 0.015 258);line-height:1.5;`)}>The letter rebuts this reason verbatim against the payer's own criteria.</div>
+            {/* The denial is an observation — capture WHY before the appeal drafts */}
+            {!V.denialCaptured ? (
+              <div style={css(`background:#fff;border:1.5px solid oklch(0.8 0.07 25);border-radius:12px;padding:18px 20px;margin-bottom:16px;box-shadow:0 8px 24px oklch(0.55 0.12 25 / 0.08);`)}>
+                <div style={css(`font-size:15px;font-weight:700;color:oklch(0.34 0.02 258);margin-bottom:4px;`)}>Denial received — what reason did the payer give?</div>
+                <div style={css(`font-size:12.5px;color:oklch(0.5 0.02 258);margin-bottom:12px;`)}>Praxess drafts the appeal by rebutting this reason, verbatim, against the case evidence and the payer's own criteria.</div>
+                <div style={css(`display:flex;gap:12px;align-items:flex-start;`)}>
+                  <div style={css(`flex:1;`)}>
+                    <label style={css(`display:block;font-size:12.5px;font-weight:600;color:oklch(0.34 0.02 258);margin-bottom:6px;`)}>Denial reason — from the payer's letter</label>
+                    <textarea
+                      value={V.denialReason}
+                      onChange={e => V.setDenialReason(e.target.value)}
+                      placeholder="Paste or type the payer's stated reason."
+                      style={css(`width:100%;min-height:64px;border:1px solid oklch(0.9 0.01 255);border-radius:8px;padding:9px 11px;font-family:'IBM Plex Sans',sans-serif;font-size:13px;line-height:1.5;color:oklch(0.32 0.02 258);outline:none;resize:vertical;box-sizing:border-box;`)}
+                    />
+                  </div>
+                  <div style={css(`width:200px;`)}>
+                    <label style={css(`display:block;font-size:12.5px;font-weight:600;color:oklch(0.34 0.02 258);margin-bottom:6px;`)}>Denial reference</label>
+                    <input
+                      value={V.denialRef}
+                      onChange={e => V.setDenialRef(e.target.value)}
+                      placeholder="e.g. MHP-2026-0718-114"
+                      style={css(`width:100%;border:1px solid oklch(0.9 0.01 255);border-radius:8px;padding:9px 11px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(0.32 0.02 258);outline:none;box-sizing:border-box;`)}
+                    />
+                    <button
+                      onClick={V.captureDenial}
+                      disabled={!V.denialReason.trim()}
+                      style={css(`margin-top:10px;width:100%;padding:11px;border-radius:9px;border:none;background:${V.denialReason.trim() ? 'oklch(0.45 0.12 255)' : 'oklch(0.88 0.006 258)'};color:${V.denialReason.trim() ? '#fff' : 'oklch(0.6 0.02 258)'};font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600;cursor:${V.denialReason.trim() ? 'pointer' : 'not-allowed'};`)}>
+                      Generate appeal draft →
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div style={css(`background:#fff;border:1px solid oklch(0.91 0.008 255);border-radius:10px;padding:11px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;`)}>
+                <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:oklch(0.55 0.12 25);flex-shrink:0;`)}>Denial reason</span>
+                <span style={css(`flex:1;font-size:12.5px;color:oklch(0.4 0.02 258);font-style:italic;`)}>“{V.denialReason}”{V.denialRef ? ` · ref ${V.denialRef}` : ''}</span>
+                <button onClick={V.editDenial} style={css(`padding:6px 12px;border-radius:7px;border:1px solid oklch(0.9 0.008 255);background:transparent;font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:oklch(0.5 0.02 258);cursor:pointer;`)}>Edit</button>
+              </div>
+            )}
+
+            {V.denialCaptured ? (<>
 
             <div style={css(`display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;`)}>
               {V.appealCandidates.map((c, _iA) => (<React.Fragment key={_iA}>
@@ -1649,10 +1677,20 @@ export default function LoopApp({ onBackToWorkspace }) {
                     <button onClick={V.submitAppeal} style={css(`flex:1;padding:10px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;`)}>File appeal with letter + records →</button>
                     <button onClick={V.downloadAppealPdf} style={css(`padding:10px 16px;border-radius:9px;border:1px solid oklch(0.88 0.01 255);background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:500;color:oklch(0.4 0.02 258);cursor:pointer;`)}>Download PDF</button>
                   </>) : null}
-                  {(V.appealSubmitted) ? (<>
-                    <div style={css(`flex:1;display:flex;align-items:center;justify-content:space-between;gap:10px;`)}>
-                      <span style={css(`font-size:12.5px;color:oklch(0.5 0.09 155);font-weight:500;`)}>✓ Appeal filed · awaiting re-determination</span>
-                      <button onClick={V.appealOverturned} style={css(`padding:9px 14px;border-radius:9px;border:1px solid oklch(0.85 0.05 155);background:oklch(0.98 0.02 155);font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;color:oklch(0.4 0.06 155);cursor:pointer;`)}>Simulate re-determination · overturned</button>
+                  {(V.appealSubmitted && !V.appealUpheld) ? (<>
+                    <div style={css(`flex:1;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;`)}>
+                      <span style={css(`font-size:12.5px;color:oklch(0.5 0.09 155);font-weight:500;`)}>✓ Appeal filed · record the payer's re-determination</span>
+                      <div style={css(`display:flex;gap:8px;`)}>
+                        <button onClick={V.appealOverturned} style={css(`padding:9px 14px;border-radius:9px;border:none;background:oklch(0.55 0.11 155);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;`)}>✓ Approved — overturned</button>
+                        <button onClick={V.appealDeniedAgain} style={css(`padding:9px 14px;border-radius:9px;border:1px solid oklch(0.86 0.06 25);background:oklch(0.98 0.02 25);font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;color:oklch(0.5 0.08 25);cursor:pointer;`)}>✕ Denied again</button>
+                      </div>
+                    </div>
+                  </>) : null}
+                  {(V.appealSubmitted && V.appealUpheld) ? (<>
+                    <div style={css(`flex:1;`)}>
+                      <div style={css(`font-size:12.5px;font-weight:600;color:oklch(0.5 0.08 25);margin-bottom:4px;`)}>Denial upheld — the loop continues to the next rung</div>
+                      <div style={css(`font-size:12px;line-height:1.5;color:oklch(0.45 0.02 258);margin-bottom:10px;`)}>Second-level internal appeal and independent external review are available. The letter's escalation notice already put the payer on notice; the peer-to-peer prep stays live.</div>
+                      <button onClick={V.appealOverturned} style={css(`padding:9px 14px;border-radius:9px;border:1px solid oklch(0.85 0.05 155);background:oklch(0.98 0.02 155);font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;color:oklch(0.4 0.06 155);cursor:pointer;`)}>✓ Overturned at external review</button>
                     </div>
                   </>) : null}
                 </div>
@@ -1676,6 +1714,7 @@ export default function LoopApp({ onBackToWorkspace }) {
                 </>)}
               </div>
             </div>
+            </>) : null}
           </div>
         </>) : null}
       </div>
