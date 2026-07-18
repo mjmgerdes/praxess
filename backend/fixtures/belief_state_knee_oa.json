@@ -1,0 +1,117 @@
+{
+  "encounter_id": "73043f9e-3254-a1d3-aa45-b82f0fc6d502::73043f9e-3254-a1d3-ecbd-a0c16f2d8db0",
+  "fixture_key": "knee_oa",
+  "policy_id": "lumbar_mri_v1",
+  "service_requested": "Advanced imaging (illustrative reuse of policy engine \u2014 knee OA pattern)",
+  "demo_headline": "Alternate evidence pattern: naproxen PRN + daily walks are both spoken and documented.",
+  "completeness": {
+    "met": 3,
+    "recoverable": 0,
+    "unknown": 2,
+    "total": 5
+  },
+  "criteria": [
+    {
+      "id": "symptom_duration",
+      "label": "Symptom duration \u2265 6 weeks",
+      "status": "documented",
+      "confidence": 0.85,
+      "summary": "Known osteoarthritis with winter-predominant pattern \u2014 chronic course documented.",
+      "evidence": [
+        {
+          "source_layer": "note",
+          "quoted_span": "Her known osteoarthritis of the knee is currently asymptomatic (pain 0/10 today); she reports a winter-predominant pattern managed with over-the-counter naproxen",
+          "source_location": "note.subjective",
+          "supports": "Chronic OA pattern"
+        }
+      ],
+      "artifact": null
+    },
+    {
+      "id": "conservative_care",
+      "label": "Failed / incomplete conservative care \u2265 6 weeks",
+      "status": "documented",
+      "confidence": 0.86,
+      "summary": "Daily market walks documented and spoken.",
+      "evidence": [
+        {
+          "source_layer": "note",
+          "quoted_span": "She walks to the market daily (~30 minutes round trip).",
+          "source_location": "note.subjective",
+          "supports": "Activity as conservative care"
+        },
+        {
+          "source_layer": "transcript",
+          "quoted_span": "I walk to the market and back, fifteen minutes each way, no problem.",
+          "source_location": "transcript.PT",
+          "supports": "Spoken activity matches note"
+        }
+      ],
+      "artifact": null
+    },
+    {
+      "id": "nsaid_trial",
+      "label": "NSAID / analgesic trial",
+      "status": "documented",
+      "confidence": 0.9,
+      "summary": "OTC naproxen PRN with food documented.",
+      "evidence": [
+        {
+          "source_layer": "note",
+          "quoted_span": "managed with over-the-counter naproxen as needed with food, without dyspepsia, melena, or knee swelling",
+          "source_location": "note.subjective",
+          "supports": "NSAID trial documented"
+        },
+        {
+          "source_layer": "transcript",
+          "quoted_span": "When it acts up I take the naproxen, the little blue ones from the pharmacy",
+          "source_location": "transcript.PT",
+          "supports": "Spoken NSAID use"
+        }
+      ],
+      "artifact": null
+    },
+    {
+      "id": "no_red_flags",
+      "label": "Red flags assessed / neurologic exam",
+      "status": "unknown",
+      "confidence": 0.4,
+      "summary": "Systemic red flags reviewed for annual exam; knee-specific neurologic deficit language not the visit focus.",
+      "evidence": [
+        {
+          "source_layer": "note",
+          "quoted_span": "She denies chest pain, dyspnea, palpitations, dizziness, headaches, visual changes, and focal numbness or weakness.",
+          "source_location": "note.subjective",
+          "supports": "General negative review \u2014 not imaging-specific"
+        }
+      ],
+      "artifact": {
+        "type": "targeted_question",
+        "id": "question_knee_red_flags",
+        "title": "One targeted question",
+        "status": "pending_answer",
+        "route_to": "clinician",
+        "body": "Any locking, giving-way, or progressive neurologic symptoms in the affected limb that would change imaging urgency?",
+        "expected_status_on_yes": "documented"
+      }
+    },
+    {
+      "id": "functional_limitation",
+      "label": "Functional limitation",
+      "status": "unknown",
+      "confidence": 0.35,
+      "summary": "Today asymptomatic; winter functional impact not quantified for payer language.",
+      "evidence": [],
+      "artifact": null
+    }
+  ],
+  "fhir_gap_callout": {
+    "title": "Policy-engine reuse",
+    "detail": "Same provenance checklist over a different musculoskeletal visit \u2014 shows the mechanic is criteria-JSON-swappable."
+  },
+  "packet_draft": {
+    "title": "Draft evidence packet \u2014 musculoskeletal imaging criteria",
+    "status": "illustrative",
+    "facts": []
+  }
+}

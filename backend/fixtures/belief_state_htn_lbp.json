@@ -1,0 +1,129 @@
+{
+  "encounter_id": "6d4fd363-1ddb-74f8-516f-2fdc861cb736::6d4fd363-1ddb-74f8-95dd-b53404f1e107",
+  "fixture_key": "htn_lbp",
+  "policy_id": "lumbar_mri_v1",
+  "service_requested": "Lumbar MRI without contrast",
+  "demo_headline": "Control case: conservative care and duration are largely documented \u2014 the agent does not invent spoken_only gaps.",
+  "completeness": {
+    "met": 4,
+    "recoverable": 0,
+    "unknown": 1,
+    "total": 5
+  },
+  "criteria": [
+    {
+      "id": "symptom_duration",
+      "label": "Symptom duration \u2265 6 weeks",
+      "status": "documented",
+      "confidence": 0.94,
+      "summary": "Note documents ~six years of chronic low back pain.",
+      "evidence": [
+        {
+          "source_layer": "note",
+          "quoted_span": "Chronic low back pain, present about six years, is a dull ache across the beltline",
+          "source_location": "note.subjective",
+          "supports": "Six-year duration"
+        },
+        {
+          "source_layer": "transcript",
+          "quoted_span": "Same one, going on six years now.",
+          "source_location": "transcript.PT",
+          "supports": "Spoken duration matches note"
+        }
+      ],
+      "artifact": null
+    },
+    {
+      "id": "conservative_care",
+      "label": "Failed / incomplete conservative care \u2265 6 weeks",
+      "status": "documented",
+      "confidence": 0.9,
+      "summary": "Stretching and heat in both transcript and note.",
+      "evidence": [
+        {
+          "source_layer": "note",
+          "quoted_span": "improved with stretching and heat",
+          "source_location": "note.subjective",
+          "supports": "Documented conservative modalities"
+        },
+        {
+          "source_layer": "transcript",
+          "quoted_span": "Stretching helps some. Heat helps more.",
+          "source_location": "transcript.PT",
+          "supports": "Spoken modalities captured in note"
+        }
+      ],
+      "artifact": null
+    },
+    {
+      "id": "nsaid_trial",
+      "label": "NSAID / analgesic trial",
+      "status": "patient_reported_unverified",
+      "confidence": 0.7,
+      "summary": "Patient reports running out of home analgesics months ago; new acetaminophen prescribed today. Prior trial details need confirmation.",
+      "evidence": [
+        {
+          "source_layer": "transcript",
+          "quoted_span": "I ran out of everything months ago and stopped refilling when the insurance switched over to my wife's plan.",
+          "source_location": "transcript.PT",
+          "supports": "Home meds depleted \u2014 prior regimen unclear"
+        },
+        {
+          "source_layer": "note",
+          "quoted_span": "Acetaminophen 325 mg oral tablets (Tylenol) prescribed for scheduled rather than crisis use",
+          "source_location": "note.assessment_plan",
+          "supports": "New prescription today"
+        }
+      ],
+      "artifact": {
+        "type": "verification_task",
+        "id": "verify_prior_analgesic",
+        "title": "Verification task \u2014 prior analgesic regimen",
+        "status": "pending_approval",
+        "body": "Confirm which analgesic/NSAID was used before the insurance change, approximate duration, and response \u2014 patient-reported gap.",
+        "route_to": "clinician"
+      }
+    },
+    {
+      "id": "no_red_flags",
+      "label": "Red flags assessed / neurologic exam",
+      "status": "documented",
+      "confidence": 0.93,
+      "summary": "Negative radicular/red-flag review documented.",
+      "evidence": [
+        {
+          "source_layer": "note",
+          "quoted_span": "He denies radicular pain, numbness, tingling, weakness, and bowel or bladder dysfunction.",
+          "source_location": "note.subjective",
+          "supports": "Red flags denied in note"
+        }
+      ],
+      "artifact": null
+    },
+    {
+      "id": "functional_limitation",
+      "label": "Functional limitation",
+      "status": "documented",
+      "confidence": 0.88,
+      "summary": "Aggravation with job-application sitting and stair laundry carrying documented.",
+      "evidence": [
+        {
+          "source_layer": "note",
+          "quoted_span": "aggravated by prolonged sitting during job applications and by carrying laundry up three flights of stairs",
+          "source_location": "note.subjective",
+          "supports": "Functional aggravators documented"
+        }
+      ],
+      "artifact": null
+    }
+  ],
+  "fhir_gap_callout": {
+    "title": "Mostly documented control",
+    "detail": "Use this encounter to show Praxess does not force spoken_only labels when the note already carries payer-grade detail."
+  },
+  "packet_draft": {
+    "title": "Draft prior authorization packet \u2014 Lumbar MRI",
+    "status": "mostly_complete",
+    "facts": []
+  }
+}

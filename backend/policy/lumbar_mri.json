@@ -1,0 +1,38 @@
+{
+  "id": "lumbar_mri_v1",
+  "service": "Lumbar MRI without contrast",
+  "source": "Hand-structured from public LCD-style medical-necessity language (prototype; not a payer contract)",
+  "disclaimer": "Criteria are illustrative for hackathon demo only. Not clinically validated.",
+  "criteria": [
+    {
+      "id": "symptom_duration",
+      "label": "Symptom duration ≥ 6 weeks",
+      "description": "Low back pain present for at least 6 weeks (chronic or subacute course).",
+      "payer_looks_for": "Documented onset or duration meeting ≥6 weeks"
+    },
+    {
+      "id": "conservative_care",
+      "label": "Failed / incomplete conservative care ≥ 6 weeks",
+      "description": "Trial of conservative measures (activity modification, heat, walking/exercise, physical modalities) for ≥6 weeks before advanced imaging.",
+      "payer_looks_for": "Duration and modalities of conservative care in the note"
+    },
+    {
+      "id": "nsaid_trial",
+      "label": "NSAID / analgesic trial",
+      "description": "Documented trial of NSAID or appropriate analgesic with response and duration, or contraindication.",
+      "payer_looks_for": "Drug name, duration of use, and response — not only a new prescription today"
+    },
+    {
+      "id": "no_red_flags",
+      "label": "Red flags assessed / neurologic exam",
+      "description": "Absence (or evaluation) of red flags: bowel/bladder dysfunction, progressive neurologic deficit, fever, unexplained weight loss, night pain; exam without neurologic deficit when applicable.",
+      "payer_looks_for": "Negative red-flag review and neurologic exam documented"
+    },
+    {
+      "id": "functional_limitation",
+      "label": "Functional limitation",
+      "description": "Pain interferes with work, ADLs, or mobility in a clinically meaningful way.",
+      "payer_looks_for": "Concrete functional impact (sitting tolerance, gait, work duties)"
+    }
+  ]
+}

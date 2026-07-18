@@ -1,6 +1,13 @@
 node_modules/
+.venv/
+__pycache__/
+*.pyc
 .env
 .env.*
+!.env.example
 .DS_Store
 dist/
-synthetic-ambient-fhir-25/
+frontend/dist/
+backend/logs/
+*.egg-info/
+.pytest_cache/
