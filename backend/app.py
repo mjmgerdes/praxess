@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import os
+import subprocess
+import sys
 from pathlib import Path
 from typing import Any, Literal, Optional
 
@@ -75,6 +78,78 @@ def encounters() -> dict[str, Any]:
         "default_encounter_id": default_encounter_id(),
         "policy": load_policy(),
     }
+
+
+class OutreachRequest(BaseModel):
+    channel: Literal["sms", "voice", "link"] = "sms"
+
+
+@app.post("/api/send_outreach")
+def send_outreach(req: OutreachRequest) -> dict[str, Any]:
+    """Fire the HITL-approved patient question as a real text.
+
+    Recipient, sender, and body are SERVER-CONFIGURED ONLY (env), never taken
+    from the request — this endpoint is publicly reachable in production and
+    must not be usable as a message relay. Modes via OUTREACH_MODE:
+      - "twilio":   Twilio SMS (TWILIO_ACCOUNT_SID/TWILIO_AUTH_TOKEN/TWILIO_FROM)
+      - "imessage": Messages.app on the demo Mac (local demos only)
+      - unset:      simulate (default — what the hosted deployment does)
+    """
+    mode = os.environ.get("OUTREACH_MODE", "")
+    to = os.environ.get("DEMO_PATIENT_PHONE", "")
+    body = (
+        "Praxess (demo) — Dr. Reyes's office: one quick question for your MRI prior "
+        "authorization. Where did you do physical therapy, and roughly when? Reply here. "
+        "Your answer stays labeled patient-reported until records confirm it."
+    )
+    if req.channel != "sms" or not mode or not to:
+        return {"sent": False, "simulated": True, "mode": mode or "simulate"}
+
+    if mode == "twilio":
+        import base64
+        import urllib.parse
+        import urllib.request
+
+        sid = os.environ.get("TWILIO_ACCOUNT_SID", "")
+        token = os.environ.get("TWILIO_AUTH_TOKEN", "")
+        from_num = os.environ.get("TWILIO_FROM", "")
+        if not (sid and token and from_num):
+            return {"sent": False, "simulated": True, "mode": mode, "error": "twilio env incomplete"}
+        data = urllib.parse.urlencode({"To": to, "From": from_num, "Body": body}).encode()
+        request = urllib.request.Request(
+            f"https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json", data=data
+        )
+        request.add_header(
+            "Authorization", "Basic " + base64.b64encode(f"{sid}:{token}".encode()).decode()
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=15) as resp:
+                payload = json.loads(resp.read())
+            return {"sent": True, "mode": "twilio", "sid": payload.get("sid"), "status": payload.get("status")}
+        except Exception as e:  # noqa: BLE001 — surface any provider failure to the UI
+            return {"sent": False, "mode": "twilio", "error": str(e)}
+
+    if mode == "imessage" and sys.platform == "darwin":
+        script = (
+            'with timeout of 15 seconds\n'
+            'tell application "Messages"\n'
+            'set targetService to 1st service whose service type = iMessage\n'
+            f'set targetBuddy to participant "{to}" of targetService\n'
+            f'send "{body}" to targetBuddy\n'
+            'end tell\n'
+            'end timeout'
+        )
+        try:
+            result = subprocess.run(
+                ["osascript", "-e", script], capture_output=True, text=True, timeout=20
+            )
+            if result.returncode == 0:
+                return {"sent": True, "mode": "imessage"}
+            return {"sent": False, "mode": "imessage", "error": result.stderr.strip()[:200]}
+        except Exception as e:  # noqa: BLE001
+            return {"sent": False, "mode": "imessage", "error": str(e)}
+
+    return {"sent": False, "simulated": True, "mode": mode}
 
 
 @app.get("/api/encounter")

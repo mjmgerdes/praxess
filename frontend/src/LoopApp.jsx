@@ -559,7 +559,14 @@ class Component extends DCLogic {
       pickSms: () => this.set({ outreachChannel: 'sms' }),
       pickVoice: () => this.set({ outreachChannel: 'voice' }),
       pickLink: () => this.set({ outreachChannel: 'link' }),
-      approveOutreach: () => { this.set({ outreachApproved: true }); },
+      approveOutreach: () => {
+        this.set({ outreachApproved: true });
+        // Fire the real outreach (server decides recipient/sender/mode; the
+        // hosted deployment simulates, the demo Mac actually texts the phone).
+        this.api('send_outreach', { channel: this.state.steps.outreachChannel })
+          .then(r => { if (r.sent) this.set({ outreachSentVia: r.mode }); })
+          .catch(() => {});
+      },
 
       recStatusLabel, recStatusColor, recStatusBg, recStatusBorder,
       recordPending: !s.recordReceived, recordDone: s.recordReceived,
