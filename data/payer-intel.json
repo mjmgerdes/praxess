@@ -1,0 +1,54 @@
+{
+  "_meta": {
+    "description": "Payer intelligence for the requested service (MRI lumbar spine w/o contrast, CPT 72148). Seeded from the Praxigen coverage API (source-grounded payer policy criteria); refreshed by scripts/refresh_payer_intel.py on the cron schedule in ops/CRON.md. Criteria text is summarized from cited public sources, never fabricated.",
+    "source": "Praxigen coverage API (MCP: get_pa_requirements)",
+    "cpt": "72148",
+    "synced": "2026-07-18",
+    "predictive_variables": [
+      "requires_pa",
+      "rbm_delegate (eviCore/Carelon routing predicts criteria family + turnaround)",
+      "criteria_family (ACR-AC-tracking vs bespoke)",
+      "conservative_care_weeks_required",
+      "documentation_emphasis (trial type+duration, red flags)",
+      "denial_pattern (insufficient conservative-therapy evidence is the modal denial for this family)"
+    ]
+  },
+  "payers": [
+    {
+      "payer": "UnitedHealthcare",
+      "requiresPa": true,
+      "rbmDelegate": "eviCore",
+      "criteriaFamily": "ACR Appropriateness Criteria (Low Back Pain, 2021)",
+      "conservativeCareWeeks": 6,
+      "criteriaSummary": "MRI appropriate when: (a) pain persisted/progressed despite >=6 weeks conservative management and patient is a surgical/interventional candidate or diagnostic uncertainty remains; (b) radiculopathy >6 weeks with failed conservative management; or (c) red flags (cauda equina, malignancy, infection, severe/progressive neuro deficit). Document conservative-care trial (type and duration) and red-flag findings.",
+      "sources": ["ACR Appropriateness Criteria Low Back Pain 2021 Update (jacr.org)", "eviCore radiology program"]
+    },
+    {
+      "payer": "Aetna",
+      "requiresPa": true,
+      "rbmDelegate": "eviCore",
+      "criteriaFamily": "ACR Appropriateness Criteria (Low Back Pain, 2021)",
+      "conservativeCareWeeks": 6,
+      "criteriaSummary": "MRI appropriate when persistent/progressive symptoms remain after >=6 weeks conservative management in a surgical/interventional candidate, radiculopathy >6 weeks despite conservative care, or red flags present. Document conservative-care type/duration and red-flag findings.",
+      "sources": ["ACR Appropriateness Criteria Low Back Pain 2021 Update (jacr.org)", "eviCore radiology program"]
+    },
+    {
+      "payer": "Medicare (traditional FFS)",
+      "requiresPa": false,
+      "rbmDelegate": null,
+      "criteriaFamily": "Part B medical necessity (AUC program paused; 42 CFR 414.94 rescinded 2024)",
+      "conservativeCareWeeks": null,
+      "criteriaSummary": "Traditional Medicare FFS generally does NOT require prior authorization for outpatient MRI; covered under Part B when medically necessary. Medicare Advantage plans set their own PA rules (CMS-0057-F timelines: 7 days standard / 72h expedited).",
+      "sources": ["CMS Appropriate Use Criteria Program (paused; CMS MM13485)", "Medicare Part B diagnostic-imaging coverage"]
+    },
+    {
+      "payer": "Meridian (demo payer)",
+      "requiresPa": true,
+      "rbmDelegate": null,
+      "criteriaFamily": "No Praxigen row for CPT 72148 yet — the nightly sync (ops/CRON.md) pulls it when published. Demo criteria C1-C5 are hand-structured from the same public ACR-tracking policy language.",
+      "conservativeCareWeeks": 6,
+      "criteriaSummary": null,
+      "sources": []
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "_meta": {
+    "fitFrom": "25 encounters \u00b7 synthetic-ambient-fhir-25 (Abridge hackathon corpus)",
+    "method": "deterministic evidence miner over transcript+note per encounter; empirical status distributions",
+    "honesty": "Fitted priors, not a trained model. The flywheel refit (ops/CRON.md) updates these from logged trajectories."
+  },
+  "criteria": {
+    "symptom_duration": {
+      "statusDistribution": {
+        "conversation_enriched": 0.04,
+        "documented": 0.96
+      },
+      "gapRate": 0.04,
+      "conversationRecoveryRate": 0.04,
+      "unknownRate": 0.0
+    },
+    "conservative_care": {
+      "statusDistribution": {
+        "conversation_enriched": 0.6,
+        "documented": 0.4
+      },
+      "gapRate": 0.6,
+      "conversationRecoveryRate": 0.6,
+      "unknownRate": 0.0
+    },
+    "nsaid_trial": {
+      "statusDistribution": {
+        "conversation_enriched": 0.12,
+        "documented": 0.24,
+        "unknown": 0.64
+      },
+      "gapRate": 0.76,
+      "conversationRecoveryRate": 0.12,
+      "unknownRate": 0.64
+    },
+    "no_red_flags": {
+      "statusDistribution": {
+        "documented": 0.28,
+        "unknown": 0.72
+      },
+      "gapRate": 0.72,
+      "conversationRecoveryRate": 0.0,
+      "unknownRate": 0.72
+    },
+    "functional_limitation": {
+      "statusDistribution": {
+        "conversation_enriched": 0.04,
+        "documented": 0.96
+      },
+      "gapRate": 0.04,
+      "conversationRecoveryRate": 0.04,
+      "unknownRate": 0.0
+    }
+  },
+  "value_function": {
+    "weights": {
+      "wApproval": 1.0,
+      "wInfo": 0.35,
+      "wTime": 0.25,
+      "wBurden": 0.15
+    },
+    "actions": {
+      "DRAFT_ADDENDUM": {
+        "dPApprove": 0.18,
+        "infoGain": 0.55,
+        "delayDays": 0.2,
+        "burden": 0.15,
+        "basis": "conversationRecoveryRate of conservative_care/nsaid_trial \u2014 the note-lost evidence the addendum recovers"
+      },
+      "ASK_PATIENT": {
+        "dPApprove": 0.242,
+        "infoGain": 0.8,
+        "delayDays": 1.0,
+        "burden": 0.1,
+        "basis": "unknownRate of PT history \u2014 only the patient can open the verification path",
+        "observed": {
+          "approved": 1,
+          "dismissed": 0
+        }
+      },
+      "ASK_CLINICIAN": {
+        "dPApprove": 0.04,
+        "infoGain": 0.2,
+        "delayDays": 1.5,
+        "burden": 0.3,
+        "basis": "clinician cannot attest to unsupervised external care"
+      },
+      "REQUEST_RECORD": {
+        "dPApprove": 0.3,
+        "infoGain": 0.65,
+        "delayDays": 3.0,
+        "burden": 0.2,
+        "basis": "patient-reported \u2192 record-verified conversion"
+      },
+      "SUBMIT_NOW": {
+        "dPApprove": -0.35,
+        "infoGain": 0.0,
+        "delayDays": 0.0,
+        "burden": 0.05,
+        "basis": "modal denial for this family: insufficient conservative-therapy evidence (payer-intel)"
+      },
+      "GENERATE_PACKET": {
+        "dPApprove": 0.1,
+        "infoGain": 0.0,
+        "delayDays": 0.1,
+        "burden": 0.1,
+        "basis": "assembly when all criteria supported"
+      },
+      "HOLD": {
+        "dPApprove": 0.0,
+        "infoGain": 0.0,
+        "delayDays": 2.0,
+        "burden": 0.0,
+        "basis": "no state change; deadline pressure only"
+      },
+      "APPEAL_LETTER": {
+        "dPApprove": 0.34,
+        "infoGain": 0.3,
+        "delayDays": 5.0,
+        "burden": 0.25,
+        "basis": "KFF: most appealed denials overturn; letter binds denial reason to verified evidence"
+      },
+      "PEER_TO_PEER": {
+        "dPApprove": 0.28,
+        "infoGain": 0.45,
+        "delayDays": 3.0,
+        "burden": 0.4,
+        "basis": "clinician-to-medical-director review; fastest overturn channel when evidence is strong"
+      },
+      "RESUBMIT": {
+        "dPApprove": 0.08,
+        "infoGain": 0.0,
+        "delayDays": 7.0,
+        "burden": 0.2,
+        "basis": "resubmission without new evidence rarely changes the determination"
+      },
+      "SUBMIT_READY": {
+        "dPApprove": 0.55,
+        "infoGain": 0.0,
+        "delayDays": 0.5,
+        "burden": 0.05,
+        "basis": "all criteria supported and provenance-linked; submission is the value-realizing move"
+      },
+      "TRACK": {
+        "dPApprove": 0.15,
+        "infoGain": 0.3,
+        "delayDays": 2.0,
+        "burden": 0.0,
+        "basis": "a payer response is the next observation; watching for it is the only action left"
+      }
+    }
+  },
+  "flywheel": {
+    "trajectoriesLogged": 6,
+    "lastRefit": "2026-07-18",
+    "byAction": {
+      "ASK_PATIENT": {
+        "approved": 1,
+        "dismissed": 0
+      }
+    }
+  }
+}

@@ -58,9 +58,14 @@ class Component extends DCLogic {
       packetGenerated: false,
       submitted: false,
       payerResponse: null,
+      appealLetterApproved: false,
+      p2pPrepped: false,
+      appealSubmitted: false,
     },
     engine: 'connecting',      // live | offline | connecting — honest indicator of backend link
     engineCriteria: null,      // criterion_id -> status from /api/analyze_transcript
+    priors: null,              // world-model priors (fit from the 25-encounter corpus; flywheel-refit)
+    payerIntel: null,          // payer requirements synced from the Praxigen coverage API
   };
 
   set(patch) { this.setState(s => ({ steps: { ...s.steps, ...patch } })); }
@@ -88,6 +93,34 @@ class Component extends DCLogic {
         this.setState({ engine: 'live', engineCriteria: by });
       })
       .catch(() => this.setState({ engine: 'offline' }));
+    // World-model priors + payer intel: static artifacts refreshed by the cron
+    // jobs in ops/CRON.md; the UI reads whatever the last sync produced.
+    fetch('/model/world_model_priors.json').then(r => r.json())
+      .then(priors => this.setState({ priors })).catch(() => {});
+    fetch('/model/payer-intel.json').then(r => r.json())
+      .then(payerIntel => this.setState({ payerIntel })).catch(() => {});
+  }
+
+  // ---- value function: EV(a|s) = wA·ΔP(approve) + wI·infoGain − wT·delay/30d − wB·burden ----
+  // Weights + per-action transition estimates come from the fitted priors
+  // (scripts/train_world_model.py) and are refit weekly from the flywheel log.
+  // `mods` conditions the estimate on the CURRENT state (e.g. asking the
+  // patient before the note gap closes halves the info yield) — that state-
+  // dependence is what makes it a rollout rather than a lookup.
+  computeEV(actionKey, mods = {}) {
+    const vf = this.state.priors?.value_function;
+    const FALLBACK = { weights: { wApproval: 1, wInfo: 0.35, wTime: 0.25, wBurden: 0.15 }, actions: {} };
+    const { weights, actions } = vf || FALLBACK;
+    const a = (actions && actions[actionKey]) || { dPApprove: 0.1, infoGain: 0.2, delayDays: 1, burden: 0.2 };
+    const dP = a.dPApprove * (mods.dP ?? 1);
+    const info = a.infoGain * (mods.info ?? 1);
+    const delay = a.delayDays * (mods.delay ?? 1);
+    const burden = a.burden * (mods.burden ?? 1);
+    const ev = weights.wApproval * dP + weights.wInfo * info - weights.wTime * (delay / 30) - weights.wBurden * burden;
+    return {
+      ev: Math.round(ev * 100) / 100,
+      terms: `ΔP ${dP >= 0 ? '+' : ''}${dP.toFixed(2)} · info +${info.toFixed(2)} · delay ${delay.toFixed(1)}d · burden ${burden.toFixed(2)}`,
+    };
   }
 
   decide(criterionId, decision, answer) {
@@ -164,35 +197,36 @@ class Component extends DCLogic {
     const bad = { c: 'oklch(0.5 0.11 25)', b: 'oklch(0.97 0.03 25)' };
     const sets = {
       addendum: [
-        mk({ kind: 'draft \u00b7 in-house', title: 'Draft clinical-note addendum', desc: 'Capture patient-reported conservative care from the transcript, clinician-approved, into the record.', delta: 'C4 partial \u2192 documented', proj: 'Readiness ' + rp + '% \u2192 80%', tone: good, score: 0.86, cta: 'Open addendum', exec: () => this.go('addendum') }),
-        mk({ kind: 'ask \u00b7 patient', title: 'Ask patient about conservative care', desc: 'Patient cannot attest to clinical framing; yields unverified data before the note gap is closed.', delta: 'starts C5, C4 still partial', proj: 'Readiness \u2192 ~76% (unverified)', tone: warn, score: 0.58, cta: '', exec: () => {} }),
-        mk({ kind: 'submit \u00b7 payer', title: 'Submit packet now', desc: 'Two criteria unresolved. Rollout projects a denial for insufficient conservative-therapy evidence.', delta: 'C4 partial, C5 unknown', proj: 'Denied \u2014 est. 82%', tone: bad, score: 0.11, cta: '', exec: () => {} }),
+        mk({ kind: 'draft \u00b7 in-house', title: 'Draft clinical-note addendum', desc: 'Capture patient-reported conservative care from the transcript, clinician-approved, into the record.', delta: 'C4 partial \u2192 documented', proj: 'Readiness ' + rp + '% \u2192 80%', tone: good, key: 'DRAFT_ADDENDUM', cta: 'Open addendum', exec: () => this.go('addendum') }),
+        mk({ kind: 'ask \u00b7 patient', title: 'Ask patient about conservative care', desc: 'Patient cannot attest to clinical framing; yields unverified data before the note gap is closed.', delta: 'starts C5, C4 still partial', proj: 'Readiness \u2192 ~76% (unverified)', tone: warn, key: 'ASK_PATIENT', mods: { dP: 0.5, info: 0.5 }, cta: '', exec: () => {} }),
+        mk({ kind: 'submit \u00b7 payer', title: 'Submit packet now', desc: 'Two criteria unresolved. Rollout projects a denial for insufficient conservative-therapy evidence.', delta: 'C4 partial, C5 unknown', proj: 'Denied \u2014 est. 82%', tone: bad, key: 'SUBMIT_NOW', cta: '', exec: () => {} }),
       ],
       patient: [
-        mk({ kind: 'ask \u00b7 patient', title: 'Ask patient: PT history + location', desc: 'Smallest targeted question that can unlock C5. Secure single-tap link, no policy interpretation asked.', delta: 'unlocks C5 verification path', proj: 'Readiness \u2192 92% \u2192 100%', tone: good, score: 0.88, cta: 'Send question', exec: () => { this.set({ patientAsked: true }); this.go('patient'); } }),
-        mk({ kind: 'ask \u00b7 clinician', title: 'Ask clinician to confirm PT', desc: 'Clinician cannot attest to external PT they did not supervise. Low expected yield.', delta: 'no state change likely', proj: 'Readiness \u2192 ~80%', tone: warn, score: 0.4, cta: '', exec: () => {} }),
-        mk({ kind: 'submit \u00b7 payer', title: 'Submit with current evidence', desc: 'PT entirely unknown. Rollout projects a request for more information.', delta: 'C5 unknown', proj: 'More info \u2014 est. 74%', tone: warn, score: 0.3, cta: '', exec: () => {} }),
+        mk({ kind: 'ask \u00b7 patient', title: 'Ask patient: PT history + location', desc: 'Smallest targeted question that can unlock C5. Secure single-tap link, no policy interpretation asked.', delta: 'unlocks C5 verification path', proj: 'Readiness \u2192 92% \u2192 100%', tone: good, key: 'ASK_PATIENT', cta: 'Send question', exec: () => { this.set({ patientAsked: true }); this.go('patient'); } }),
+        mk({ kind: 'ask \u00b7 clinician', title: 'Ask clinician to confirm PT', desc: 'Clinician cannot attest to external PT they did not supervise. Low expected yield.', delta: 'no state change likely', proj: 'Readiness \u2192 ~80%', tone: warn, key: 'ASK_CLINICIAN', cta: '', exec: () => {} }),
+        mk({ kind: 'submit \u00b7 payer', title: 'Submit with current evidence', desc: 'PT entirely unknown. Rollout projects a request for more information.', delta: 'C5 unknown', proj: 'More info \u2014 est. 74%', tone: warn, key: 'SUBMIT_NOW', mods: { dP: 0.6 }, cta: '', exec: () => {} }),
       ],
       record: [
-        mk({ kind: 'request \u00b7 record', title: 'Request records from Metro PT', desc: 'Convert patient-reported PT into verified, provenance-linked documentation.', delta: 'C5 patient-reported \u2192 verified', proj: 'Readiness ' + rp + '% \u2192 100%', tone: good, score: 0.91, cta: 'Request record', exec: () => { this.set({ recordRequested: true }); this.go('record'); } }),
-        mk({ kind: 'ask \u00b7 patient', title: 'Ask patient to upload PT summary', desc: 'Faster, but lower provenance and higher payer-scrutiny risk than a direct release.', delta: 'C5 \u2192 patient-uploaded', proj: 'Readiness \u2192 ~96%', tone: warn, score: 0.62, cta: '', exec: () => {} }),
-        mk({ kind: 'submit \u00b7 payer', title: 'Submit with patient-reported PT', desc: 'Unverified PT often triggers a documentation request. Rollout projects more-info.', delta: 'C5 patient-reported', proj: 'More info \u2014 est. 63%', tone: warn, score: 0.44, cta: '', exec: () => {} }),
+        mk({ kind: 'request \u00b7 record', title: 'Request records from Metro PT', desc: 'Convert patient-reported PT into verified, provenance-linked documentation.', delta: 'C5 patient-reported \u2192 verified', proj: 'Readiness ' + rp + '% \u2192 100%', tone: good, key: 'REQUEST_RECORD', cta: 'Request record', exec: () => { this.set({ recordRequested: true }); this.go('record'); } }),
+        mk({ kind: 'ask \u00b7 patient', title: 'Ask patient to upload PT summary', desc: 'Faster, but lower provenance and higher payer-scrutiny risk than a direct release.', delta: 'C5 \u2192 patient-uploaded', proj: 'Readiness \u2192 ~96%', tone: warn, key: 'ASK_PATIENT', mods: { dP: 0.6, info: 0.5, burden: 0.8 }, cta: '', exec: () => {} }),
+        mk({ kind: 'submit \u00b7 payer', title: 'Submit with patient-reported PT', desc: 'Unverified PT often triggers a documentation request. Rollout projects more-info.', delta: 'C5 patient-reported', proj: 'More info \u2014 est. 63%', tone: warn, key: 'SUBMIT_NOW', mods: { dP: 0.4 }, cta: '', exec: () => {} }),
       ],
       packet: [
-        mk({ kind: 'generate \u00b7 packet', title: 'Generate provenance-backed packet', desc: 'All five criteria supported. Assemble a review-ready draft with source links on every assertion.', delta: 'produces review-ready draft', proj: 'All 5 criteria supported', tone: good, score: 0.95, cta: 'Generate packet', exec: () => { this.set({ packetGenerated: true }); this.go('packet'); } }),
-        mk({ kind: 'hold', title: 'Hold for further review', desc: 'No open criteria remain; delay adds no value and risks deadline pressure.', delta: 'no change', proj: 'Readiness holds 100%', tone: warn, score: 0.3, cta: '', exec: () => {} }),
-        mk({ kind: 'ask \u00b7 clinician', title: 'Request extra clinical detail', desc: 'Marginal — criteria already met; additional detail unlikely to change the determination.', delta: 'no change', proj: 'Readiness holds 100%', tone: warn, score: 0.25, cta: '', exec: () => {} }),
+        mk({ kind: 'generate \u00b7 packet', title: 'Generate provenance-backed packet', desc: 'All five criteria supported. Assemble a review-ready draft with source links on every assertion.', delta: 'produces review-ready draft', proj: 'All 5 criteria supported', tone: good, key: 'GENERATE_PACKET', cta: 'Generate packet', exec: () => { this.set({ packetGenerated: true }); this.go('packet'); } }),
+        mk({ kind: 'hold', title: 'Hold for further review', desc: 'No open criteria remain; delay adds no value and risks deadline pressure.', delta: 'no change', proj: 'Readiness holds 100%', tone: warn, key: 'HOLD', cta: '', exec: () => {} }),
+        mk({ kind: 'ask \u00b7 clinician', title: 'Request extra clinical detail', desc: 'Marginal — criteria already met; additional detail unlikely to change the determination.', delta: 'no change', proj: 'Readiness holds 100%', tone: warn, key: 'ASK_CLINICIAN', mods: { dP: 0.3, info: 0.3 }, cta: '', exec: () => {} }),
       ],
       submit: [
-        mk({ kind: 'submit \u00b7 payer', title: 'Submit packet to Meridian', desc: 'Fully supported, provenance-linked packet. Rollout projects a favorable determination.', delta: 'case \u2192 submitted', proj: 'Approval \u2014 est. 88%', tone: good, score: 0.93, cta: 'Submit', exec: () => this.go('packet') }),
-        mk({ kind: 'hold', title: 'Hold for clinician sign-off', desc: 'Reasonable, but the packet is already clinician-reviewed and deadline is active.', delta: 'no change', proj: 'no progress', tone: warn, score: 0.35, cta: '', exec: () => {} }),
-        mk({ kind: 'peer-to-peer', title: 'Pre-schedule peer-to-peer', desc: 'Premature before a determination exists. Reserve for a denial branch.', delta: 'no change', proj: 'n/a', tone: warn, score: 0.2, cta: '', exec: () => {} }),
+        mk({ kind: 'submit \u00b7 payer', title: 'Submit packet to Meridian', desc: 'Fully supported, provenance-linked packet. Rollout projects a favorable determination.', delta: 'case \u2192 submitted', proj: 'Approval \u2014 est. 88%', tone: good, key: 'SUBMIT_READY', cta: 'Submit', exec: () => this.go('packet') }),
+        mk({ kind: 'hold', title: 'Hold for clinician sign-off', desc: 'Reasonable, but the packet is already clinician-reviewed and deadline is active.', delta: 'no change', proj: 'no progress', tone: warn, key: 'HOLD', cta: '', exec: () => {} }),
+        mk({ kind: 'peer-to-peer', title: 'Pre-schedule peer-to-peer', desc: 'Premature before a determination exists. Reserve for a denial branch.', delta: 'no change', proj: 'n/a', tone: warn, key: 'PEER_TO_PEER', mods: { dP: 0.1, info: 0.2 }, cta: '', exec: () => {} }),
       ],
       track: [
-        mk({ kind: 'observe', title: 'Track payer determination', desc: 'Case submitted. Awaiting a payer observation to re-plan against.', delta: 'monitoring', proj: 'Awaiting response', tone: good, score: 0.9, cta: 'Go to tracking', exec: () => this.go('lifecycle') }),
+        mk({ kind: 'observe', title: 'Track payer determination', desc: 'Case submitted. Awaiting a payer observation to re-plan against.', delta: 'monitoring', proj: 'Awaiting response', tone: good, key: 'TRACK', cta: 'Go to tracking', exec: () => this.go('lifecycle') }),
       ],
     };
     const list = sets[p] || sets.track;
+    list.forEach(c => { const r = this.computeEV(c.key || 'HOLD', c.mods || {}); c.score = r.ev; c.terms = r.terms; });
     let best = 0; list.forEach((c, i) => { if (c.score > list[best].score) best = i; });
     return list.map((c, i) => ({ ...c, recommended: i === best }));
   }
@@ -299,6 +333,9 @@ class Component extends DCLogic {
     if (s.outreachApproved) log.push({ text: 'Outreach approved (human go-ahead) \u2192 question dispatched via ' + ({ sms: 'Twilio SMS', voice: 'Twilio voice + ElevenLabs', link: 'secure link' }[s.outreachChannel]), time: '10:41', color: 'oklch(0.55 0.13 250)' });
     if (s.patientAnswered) log.push({ text: 'Patient response received \u2192 C5 patient-reported', time: '11:03', color: 'oklch(0.65 0.09 70)' });
     if (s.recordReceived) log.push({ text: 'Metro PT record verified \u2192 C5 documented', time: '14:47', color: 'oklch(0.55 0.11 155)' });
+    if (s.payerResponse === 'deny') log.push({ text: 'Payer denied \u2014 insufficient conservative-therapy evidence \u2192 appeal replan', time: '15:20', color: 'oklch(0.55 0.15 25)' });
+    if (s.appealLetterApproved) log.push({ text: 'Appeal letter approved (clinician) \u2192 evidence-bound rebuttal ready', time: '15:32', color: 'oklch(0.55 0.11 155)' });
+    if (s.appealSubmitted) log.push({ text: 'Appeal filed with letter + PT record + P2P requested', time: '15:41', color: 'oklch(0.55 0.13 250)' });
     if (s.packetGenerated) log.push({ text: 'Provenance-backed packet generated \u00b7 review-ready', time: '14:52', color: 'oklch(0.55 0.13 250)' });
     if (s.submitted) log.push({ text: 'Submitted to Meridian Health Plan', time: '15:08', color: 'oklch(0.45 0.12 255)' });
     const execLog = log.slice().reverse();
@@ -348,7 +385,7 @@ class Component extends DCLogic {
       kind: c.kind, title: c.title, desc: c.desc, delta: c.delta, proj: c.proj,
       recommended: c.recommended, cta: c.cta, onExecute: c.exec,
       projColor: c.tone.c, projBg: c.tone.b,
-      scoreText: c.score.toFixed(2), scorePct: Math.round(c.score * 100),
+      scoreText: c.score.toFixed(2), scorePct: Math.max(3, Math.min(100, Math.round((c.score / 0.6) * 100))), evTerms: c.terms,
       scoreColor: c.recommended ? 'oklch(0.45 0.12 255)' : 'oklch(0.65 0.015 258)',
       cardBorder: c.recommended ? 'oklch(0.55 0.13 250)' : 'oklch(0.91 0.008 255)',
       cardShadow: c.recommended ? '0 8px 30px -12px oklch(0.55 0.13 250 / 0.4)' : 'none',
@@ -402,9 +439,15 @@ class Component extends DCLogic {
       submitted: s.submitted,
       approved: pr === 'approve',
     };
-    const casePct = Math.round((0.15 + 0.35 * (rp / 100) + 0.15 * (s.packetGenerated ? 1 : 0) + 0.15 * (s.submitted ? 1 : 0) + 0.20 * (pr === 'approve' ? 1 : 0)) * 100);
+    // Denial is not a terminal state: appeal progress keeps moving the case
+    // toward the only real goal (care approved). 100% only at approval.
+    const appealBonus = pr === 'deny' ? (0.04 * (s.appealLetterApproved ? 1 : 0) + 0.02 * (s.p2pPrepped ? 1 : 0) + 0.06 * (s.appealSubmitted ? 1 : 0)) : 0;
+    const casePct = pr === 'approve'
+      ? 100  // authorization IS the goal — approved means the path is complete
+      : Math.min(99, Math.round((0.15 + 0.35 * (rp / 100) + 0.15 * (s.packetGenerated ? 1 : 0) + 0.15 * (s.submitted ? 1 : 0) + appealBonus) * 100));
     let caseStatus, caseColor;
     if (pr === 'approve') { caseStatus = 'Authorized \u2014 patient can receive care'; caseColor = 'oklch(0.5 0.11 155)'; }
+    else if (pr === 'deny' && s.appealSubmitted) { caseStatus = 'Appeal filed \u2014 awaiting re-determination'; caseColor = 'oklch(0.55 0.15 25)'; }
     else if (pr === 'deny') { caseStatus = 'Denied \u2014 appeal in progress'; caseColor = 'oklch(0.55 0.15 25)'; }
     else if (pr === 'more') { caseStatus = 'More information requested'; caseColor = 'oklch(0.58 0.1 65)'; }
     else if (s.submitted) { caseStatus = 'Submitted \u2014 awaiting determination'; caseColor = 'oklch(0.5 0.12 255)'; }
@@ -499,6 +542,44 @@ class Component extends DCLogic {
       respApprove: () => this.set({ payerResponse: 'approve' }),
       respMore: () => this.set({ payerResponse: 'more' }),
       respDeny: () => this.set({ payerResponse: 'deny' }),
+
+      // ---- post-denial workspace (praxigen mechanisms: appeal letter + P2P prep) ----
+      isDenied: pr === 'deny',
+      appealLetterApproved: s.appealLetterApproved,
+      p2pPrepped: s.p2pPrepped,
+      appealSubmitted: s.appealSubmitted,
+      appealCandidates: (() => {
+        if (pr !== 'deny') return [];
+        const defs = [
+          { key: 'APPEAL_LETTER', title: 'Draft appeal letter', desc: 'Bind the denial reason to the verified evidence: addendum, PT record, red-flag screen.', cta: true },
+          { key: 'PEER_TO_PEER', title: 'Schedule peer-to-peer', desc: 'Dr. Reyes to payer medical director, prepped with the criteria-mapped call sheet.', cta: true },
+          { key: 'RESUBMIT', title: 'Resubmit unchanged', desc: 'Same packet, same evidence. The determination rarely changes without new information.', cta: false },
+        ];
+        const scored = defs.map(d => { const r = this.computeEV(d.key); return { ...d, ev: r.ev, terms: r.terms }; });
+        const best = Math.max(...scored.map(x => x.ev));
+        return scored.map(x => ({ ...x, recommended: x.ev === best }));
+      })(),
+      approveAppealLetter: () => { this.set({ appealLetterApproved: true }); },
+      prepP2P: () => { this.set({ p2pPrepped: true }); },
+      submitAppeal: () => { this.set({ appealSubmitted: true }); },
+      appealOverturned: () => { this.set({ payerResponse: 'approve' }); },
+      appealPayerIntel: (() => {
+        const rows = this.state.payerIntel?.payers || [];
+        const uhc = rows.find(x => (x.payer || '').startsWith('UnitedHealthcare'));
+        return uhc
+          ? `criteria family: ${uhc.criteriaFamily} · RBM: ${uhc.rbmDelegate} · sourced via Praxigen coverage sync`
+          : 'payer intel syncing…';
+      })(),
+
+      // ---- value-function display (equation strip on the decision screen) ----
+      evWA: (this.state.priors?.value_function?.weights?.wApproval ?? 1).toFixed(2),
+      evWI: (this.state.priors?.value_function?.weights?.wInfo ?? 0.35).toFixed(2),
+      evWT: (this.state.priors?.value_function?.weights?.wTime ?? 0.25).toFixed(2),
+      evWB: (this.state.priors?.value_function?.weights?.wBurden ?? 0.15).toFixed(2),
+      evFitMeta: this.state.priors ? this.state.priors._meta.fitFrom : 'fitting…',
+      evFlywheel: this.state.priors
+        ? `${this.state.priors.flywheel.trajectoriesLogged} trajectories logged · refit ${this.state.priors.flywheel.lastRefit || 'pending'}`
+        : '…',
     };
   }
 
@@ -786,6 +867,10 @@ export default function LoopApp() {
           <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;`)}>03 · Decision engine</div>
           <h1 style={css(`margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em;`)}>Roll out · judge · decide · execute</h1>
           <p style={css(`margin:6px 0 0;font-size:13px;color:oklch(0.55 0.02 258);max-width:640px;`)}>From the current state, Praxess simulates candidate actions, projects each resulting state and payer outcome, scores them by expected value, and commits the highest-value action to the execution layer.</p>
+          <div style={css(`margin-top:12px;display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.7;color:oklch(0.45 0.05 258);background:#fff;border:1px solid oklch(0.9 0.015 250);border-radius:9px;padding:9px 13px;`)}>
+            EV(a&nbsp;|&nbsp;s) = {V.evWA}·ΔP(approve) + {V.evWI}·infoGain − {V.evWT}·delay/30d − {V.evWB}·burden<br/>
+            <span style={css(`color:oklch(0.6 0.015 258);`)}>weights &amp; transition estimates: {V.evFitMeta} · flywheel: {V.evFlywheel}</span>
+          </div>
         </div>
 
         <div style={css(`display:flex;align-items:stretch;gap:14px;margin-bottom:8px;`)}>
@@ -822,12 +907,13 @@ export default function LoopApp() {
                 </div>
                 <div>
                   <div style={css(`display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;`)}>
-                    <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;color:oklch(0.65 0.015 258);`)}>VALUE SCORE</span>
+                    <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;color:oklch(0.65 0.015 258);`)}>EV(a) · ROLLOUT</span>
                     <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:${a.scoreColor};`)}>{a.scoreText}</span>
                   </div>
                   <div style={css(`height:5px;border-radius:4px;background:oklch(0.94 0.006 258);overflow:hidden;`)}>
                     <div style={css(`height:100%;border-radius:4px;background:${a.scoreColor};width:${a.scorePct}%;`)}></div>
                   </div>
+                  <div style={css(`margin-top:5px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:oklch(0.62 0.015 258);line-height:1.5;`)}>{a.evTerms}</div>
                 </div>
                 {(a.recommended) ? (<>
                   <button onClick={a.onExecute} style={css(`margin-top:2px;padding:10px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;`)}>⚡ Execute · {a.cta}</button>
@@ -1110,6 +1196,76 @@ export default function LoopApp() {
             </>) : null}
           </div>
         </div>
+
+        {(V.isDenied) ? (<>
+          <div style={css(`margin-top:24px;animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;`)}>
+            <div style={css(`display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;`)}>
+              <h2 style={css(`margin:0;font-size:18px;font-weight:700;letter-spacing:-0.01em;`)}>Appeal workspace · same loop, new observation</h2>
+              <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.55 0.12 25);`)}>appeal deadline · 14 days</span>
+            </div>
+
+            <div style={css(`display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;`)}>
+              {V.appealCandidates.map((c, _iA) => (<React.Fragment key={_iA}>
+                <div style={css(`background:#fff;border:1.5px solid ${c.recommended ? 'oklch(0.55 0.13 250)' : 'oklch(0.91 0.008 255)'};border-radius:11px;padding:13px 14px;`)}>
+                  <div style={css(`display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;`)}>
+                    <span style={css(`font-size:13px;font-weight:600;`)}>{c.title}</span>
+                    <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:${c.recommended ? 'oklch(0.45 0.12 255)' : 'oklch(0.6 0.015 258)'};`)}>{c.ev.toFixed(2)}</span>
+                  </div>
+                  <div style={css(`font-size:11.5px;color:oklch(0.5 0.02 258);line-height:1.45;`)}>{c.desc}</div>
+                  <div style={css(`margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:oklch(0.62 0.015 258);`)}>{c.terms}</div>
+                </div>
+              </React.Fragment>))}
+            </div>
+
+            <div style={css(`display:grid;grid-template-columns:1.2fr 1fr;gap:16px;align-items:start;`)}>
+              <div style={css(`background:#fff;border:1px solid oklch(0.91 0.008 255);border-radius:12px;overflow:hidden;`)}>
+                <div style={css(`padding:12px 16px;border-bottom:1px solid oklch(0.93 0.006 258);display:flex;align-items:center;justify-content:space-between;`)}>
+                  <span style={css(`font-size:13px;font-weight:600;`)}>Appeal letter · drafted from the case state</span>
+                  <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:${V.appealLetterApproved ? 'oklch(0.45 0.1 155)' : 'oklch(0.55 0.09 65)'};background:${V.appealLetterApproved ? 'oklch(0.96 0.03 155)' : 'oklch(0.97 0.04 75)'};border:1px solid ${V.appealLetterApproved ? 'oklch(0.86 0.05 155)' : 'oklch(0.88 0.05 75)'};border-radius:20px;padding:3px 10px;`)}>{V.appealLetterApproved ? 'CLINICIAN-APPROVED' : 'AWAITING APPROVAL'}</span>
+                </div>
+                <div style={css(`padding:16px;font-size:13px;line-height:1.65;color:oklch(0.32 0.02 258);`)}>
+                  <p style={css(`margin:0 0 10px;`)}>Re: PA-4471 · MRI lumbar spine w/o contrast (72148) · denial for insufficient conservative-therapy evidence.</p>
+                  <p style={css(`margin:0 0 10px;`)}>The record now establishes the criterion the denial cites. The clinician-approved addendum documents self-directed conservative care: ibuprofen with good effect until the supply ran out, walking and heat <span style={css(`background:oklch(0.95 0.03 250);border-radius:3px;padding:0 3px;`)}>("ibuprofen for a while, which worked" — encounter transcript, verified span)</span>. The attached Metro Physical Therapy discharge summary verifies an <strong style={css(`font-weight:600;`)}>8-session course of physical therapy (Jan–Mar)</strong>, previously patient-reported and now record-verified. Red-flag screen and neurologic examination are documented in the clinical note.</p>
+                  <p style={css(`margin:0;`)}>All five policy criteria are satisfied with source-linked evidence; we request reversal of the determination.</p>
+                  <div style={css(`margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.6 0.015 258);border-top:1px dashed oklch(0.9 0.008 255);padding-top:10px;`)}>{V.appealPayerIntel}</div>
+                </div>
+                <div style={css(`padding:12px 16px;border-top:1px solid oklch(0.93 0.006 258);display:flex;gap:10px;background:oklch(0.985 0.004 255);`)}>
+                  {(!V.appealLetterApproved) ? (<>
+                    <button onClick={V.approveAppealLetter} style={css(`flex:1;padding:10px;border-radius:9px;border:none;background:oklch(0.55 0.11 155);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;`)}>✓ Approve letter</button>
+                    <button style={css(`padding:10px 16px;border-radius:9px;border:1px solid oklch(0.88 0.01 255);background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:500;color:oklch(0.4 0.02 258);cursor:pointer;`)}>Edit</button>
+                  </>) : null}
+                  {(V.appealLetterApproved && !V.appealSubmitted) ? (<>
+                    <button onClick={V.submitAppeal} style={css(`flex:1;padding:10px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;`)}>File appeal with letter + records →</button>
+                  </>) : null}
+                  {(V.appealSubmitted) ? (<>
+                    <div style={css(`flex:1;display:flex;align-items:center;justify-content:space-between;gap:10px;`)}>
+                      <span style={css(`font-size:12.5px;color:oklch(0.5 0.09 155);font-weight:500;`)}>✓ Appeal filed · awaiting re-determination</span>
+                      <button onClick={V.appealOverturned} style={css(`padding:9px 14px;border-radius:9px;border:1px solid oklch(0.85 0.05 155);background:oklch(0.98 0.02 155);font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;color:oklch(0.4 0.06 155);cursor:pointer;`)}>Simulate re-determination · overturned</button>
+                    </div>
+                  </>) : null}
+                </div>
+              </div>
+
+              <div style={css(`background:#fff;border:1px solid oklch(0.91 0.008 255);border-radius:12px;padding:16px;`)}>
+                <div style={css(`display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;`)}>
+                  <span style={css(`font-size:13px;font-weight:600;`)}>Peer-to-peer call prep</span>
+                  <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.6 0.02 258);`)}>Dr. Reyes → payer medical director</span>
+                </div>
+                <div style={css(`display:flex;flex-direction:column;gap:8px;font-size:12.5px;line-height:1.5;color:oklch(0.38 0.02 258);`)}>
+                  <div>1 · Denial reason is now moot: conservative-therapy course verified by external record (8 sessions, Metro PT).</div>
+                  <div>2 · Criteria map: C1–C3 documented in note; C4 clinician-approved addendum; C5 record-verified.</div>
+                  <div>3 · Every assertion is span-verified against transcript, note, FHIR, or the external record — offer to walk the sources live.</div>
+                  <div>4 · Criteria family tracks ACR AC 2021 (payer intel); frame the case in ACR terms.</div>
+                </div>
+                {(!V.p2pPrepped) ? (<>
+                  <button onClick={V.prepP2P} style={css(`margin-top:12px;width:100%;padding:10px;border-radius:9px;border:1px solid oklch(0.88 0.01 255);background:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:12.5px;font-weight:600;color:oklch(0.4 0.02 258);cursor:pointer;`)}>Mark prepped · request P2P slot</button>
+                </>) : (<>
+                  <div style={css(`margin-top:12px;display:flex;align-items:center;gap:8px;font-size:12.5px;color:oklch(0.5 0.09 155);font-weight:500;`)}><span style={css(`width:16px;height:16px;border-radius:50%;background:oklch(0.6 0.11 155);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;`)}>✓</span>Prep sheet ready · P2P slot requested</div>
+                </>)}
+              </div>
+            </div>
+          </div>
+        </>) : null}
       </div>
       </>) : null}
 
