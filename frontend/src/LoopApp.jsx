@@ -6,6 +6,7 @@
 // inline oklch() styles, parsed at runtime by css().
 import React, { useReducer, useRef } from 'react';
 import CaseConstellation from './CaseConstellation.jsx';
+import DecisionRollout from './DecisionRollout.jsx';
 import { buildPacketPdf } from './packetPdf.js';
 import './loop.css';
 
@@ -383,7 +384,7 @@ class Component extends DCLogic {
     // candidates
     const candsRaw = this.candidates();
     const candidates = candsRaw.map(c => ({
-      kind: c.kind, title: c.title, desc: c.desc, delta: c.delta, proj: c.proj,
+      key: c.key, kind: c.kind, title: c.title, desc: c.desc, delta: c.delta, proj: c.proj,
       recommended: c.recommended, cta: c.cta, onExecute: c.exec,
       projColor: c.tone.c, projBg: c.tone.b,
       scoreText: c.score.toFixed(2), scorePct: Math.max(3, Math.min(100, Math.round((c.score / 0.6) * 100))), evTerms: c.terms,
@@ -498,6 +499,7 @@ class Component extends DCLogic {
       readinessPct: rp, readinessColor, readinessLabel,
       casePct, caseStatus, caseColor, milestones,
       criteria, navItems, execLog, layers, candidates,
+      phaseKey: this.phase(),
       candCount: candsRaw.length,
       openCount: cr.filter(c => this.statusMeta(c.status).w < 1).length,
       stateVersion: 'v' + (log.length),
@@ -751,7 +753,7 @@ export default function LoopApp() {
 
     
     <main style={css(`flex:1;overflow:auto;background-image:radial-gradient(oklch(0.9 0.008 255) 0.8px, transparent 0.8px);background-size:22px 22px;background-position:-1px -1px;`)}>
-    <div style={css(`max-width:1080px;margin:0 auto;padding:28px 32px 56px;`)}>
+    <div className={V.isDecision ? 'prx-decision-main' : undefined} style={css(`max-width:1080px;margin:0 auto;padding:${V.isDecision ? '8px 32px 18px' : '28px 32px 56px'};`)}>
 
       
       {(V.isEncounter) ? (<>
@@ -871,68 +873,19 @@ export default function LoopApp() {
 
       
       {(V.isDecision) ? (<>
-      <div style={css(`animation:prx-in .26s cubic-bezier(0.25,1,0.5,1) both;`)}>
-        <div style={css(`margin-bottom:20px;`)}>
-          <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.55 0.13 250);margin-bottom:6px;`)}>03 · Decision engine</div>
-          <h1 style={css(`margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em;`)}>Roll out · judge · decide · execute</h1>
-          <p style={css(`margin:6px 0 0;font-size:13px;color:oklch(0.55 0.02 258);max-width:640px;`)}>From the current state, Praxess simulates candidate actions, projects each resulting state and payer outcome, scores them by expected value, and commits the highest-value action to the execution layer.</p>
-          <div style={css(`margin-top:12px;display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.7;color:oklch(0.45 0.05 258);background:#fff;border:1px solid oklch(0.9 0.015 250);border-radius:9px;padding:9px 13px;`)}>
-            EV(a&nbsp;|&nbsp;s) = {V.evWA}·ΔP(approve) + {V.evWI}·infoGain − {V.evWT}·delay/30d − {V.evWB}·burden<br/>
-            <span style={css(`color:oklch(0.6 0.015 258);`)}>weights &amp; transition estimates: {V.evFitMeta} · flywheel: {V.evFlywheel}</span>
-          </div>
-        </div>
-
-        <div style={css(`display:flex;align-items:stretch;gap:14px;margin-bottom:8px;`)}>
-          <div style={css(`flex-shrink:0;width:150px;background:oklch(0.985 0.004 255);border:1px solid oklch(0.91 0.008 255);border-radius:12px;padding:16px;display:flex;flex-direction:column;justify-content:center;gap:8px;`)}>
-            <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.6 0.02 258);`)}>Current state</span>
-            <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:12px;color:oklch(0.35 0.02 258);line-height:1.7;`)}>
-              readiness&nbsp;<span style={css(`color:${V.readinessColor};font-weight:600;`)}>{V.readinessPct}%</span><br/>
-              open_criteria&nbsp;<span style={css(`font-weight:600;`)}>{V.openCount}</span>
-            </div>
-            <div style={css(`height:1px;background:oklch(0.92 0.006 258);margin:2px 0;`)}></div>
-            <span style={css(`font-size:11px;color:oklch(0.6 0.02 258);line-height:1.4;`)}>Simulating {V.candCount} candidate actions…</span>
-          </div>
-
-          <div style={css(`flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;`)}>
-            {V.candidates.map((a, _i0) => (<React.Fragment key={_i0}>
-              <div style={css(`position:relative;background:#fff;border:1.5px solid ${a.cardBorder};border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:${a.cardShadow};`)}>
-                {(a.recommended) ? (<>
-                  <span style={css(`position:absolute;top:-9px;left:14px;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.1em;background:oklch(0.45 0.12 255);color:#fff;padding:3px 8px;border-radius:20px;display:flex;align-items:center;gap:5px;`)}><span style={css(`width:5px;height:5px;border-radius:50%;background:#fff;animation:prx-pulse 1.6s infinite;`)}></span>ARGMAX · SELECTED</span>
-                </>) : null}
-                <div>
-                  <div style={css(`font-family:'IBM Plex Mono',monospace;font-size:10px;color:oklch(0.62 0.015 258);margin-bottom:5px;`)}>{a.kind}</div>
-                  <div style={css(`font-size:14px;font-weight:600;line-height:1.3;`)}>{a.title}</div>
-                </div>
-                <div style={css(`font-size:12px;color:oklch(0.5 0.02 258);line-height:1.5;flex:1;`)}>{a.desc}</div>
-                <div style={css(`border-top:1px dashed oklch(0.9 0.008 255);padding-top:11px;display:flex;flex-direction:column;gap:8px;`)}>
-                  <div style={css(`display:flex;align-items:center;gap:7px;`)}>
-                    <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;color:oklch(0.65 0.015 258);width:56px;flex-shrink:0;`)}>Δ STATE</span>
-                    <span style={css(`font-size:11px;color:oklch(0.4 0.02 258);`)}>{a.delta}</span>
-                  </div>
-                  <div style={css(`display:flex;align-items:center;gap:7px;`)}>
-                    <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;color:oklch(0.65 0.015 258);width:56px;flex-shrink:0;`)}>PROJ</span>
-                    <span style={css(`font-size:11px;font-weight:500;color:${a.projColor};background:${a.projBg};border-radius:5px;padding:2px 7px;`)}>{a.proj}</span>
-                  </div>
-                </div>
-                <div>
-                  <div style={css(`display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;`)}>
-                    <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.08em;color:oklch(0.65 0.015 258);`)}>EV(a) · ROLLOUT</span>
-                    <span style={css(`font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:${a.scoreColor};`)}>{a.scoreText}</span>
-                  </div>
-                  <div style={css(`height:5px;border-radius:4px;background:oklch(0.94 0.006 258);overflow:hidden;`)}>
-                    <div style={css(`height:100%;border-radius:4px;background:${a.scoreColor};width:${a.scorePct}%;`)}></div>
-                  </div>
-                  <div style={css(`margin-top:5px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:oklch(0.62 0.015 258);line-height:1.5;`)}>{a.evTerms}</div>
-                </div>
-                {(a.recommended) ? (<>
-                  <button onClick={a.onExecute} style={css(`margin-top:2px;padding:10px;border-radius:9px;border:none;background:oklch(0.45 0.12 255);color:#fff;font-family:'IBM Plex Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;`)}>⚡ Execute · {a.cta}</button>
-                </>) : null}
-              </div>
-            </React.Fragment>))}
-          </div>
-        </div>
-        <p style={css(`font-size:11px;color:oklch(0.65 0.015 258);font-family:'IBM Plex Mono',monospace;margin-top:14px;`)}>Execution is gated by human approval. Praxess proposes; the clinician commits.</p>
-      </div>
+      <DecisionRollout
+        candidates={V.candidates}
+        criteria={V.criteria}
+        readinessPct={V.readinessPct}
+        readinessColor={V.readinessColor}
+        openCount={V.openCount}
+        stateVersion={V.stateVersion}
+        lastEvent={V.lastEvent}
+        phase={V.phaseKey}
+        fitMeta={V.evFitMeta}
+        flywheel={V.evFlywheel}
+        weights={{ approval: V.evWA, info: V.evWI, time: V.evWT, burden: V.evWB }}
+      />
       </>) : null}
 
       
