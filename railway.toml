@@ -1,8 +1,10 @@
 [build]
-# Build the frontend first so the FastAPI static-file fallback finds dist/
-buildCommand = "cd frontend && npm ci && npm run build && cd ../backend && pip install -r requirements.txt"
+# Dockerfile at the repo root handles the full multi-stage build:
+# Node 20 builds the React frontend, then Python 3.12 serves it via FastAPI.
+# Railway detects the Dockerfile automatically and ignores Railpack.
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "cd backend && uvicorn app:app --host 0.0.0.0 --port $PORT"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
