@@ -66,22 +66,22 @@ const CARD_META = {
   primary_lbp: {
     title: 'Chronic low back pain',
     date: 'Apr 2021',
-    desc: '2 criteria need conversation evidence — ibuprofen trial gap in note',
-    badge: 'Primary demo',
+    desc: 'ibuprofen trial gap — conversation evidence recovers 2 criteria',
+    badge: 'Primary',
     badgeClass: 'primary',
   },
   htn_lbp: {
     title: 'Hypertension + low back pain',
     date: 'Jul 2025',
-    desc: 'Mostly documented — use as control case to show clean flow',
+    desc: 'Mostly documented — control case',
     badge: 'Control',
     badgeClass: 'control',
   },
   knee_oa: {
     title: 'Knee osteoarthritis',
     date: 'Aug 2016',
-    desc: '2 criteria unknown — demonstrates targeted question flow',
-    badge: 'Alt scenario',
+    desc: '2 criteria unknown — targeted question flow',
+    badge: 'Alt',
     badgeClass: 'alt',
   },
 }
@@ -161,8 +161,8 @@ function TrajectoryRow({ t, defaultOpen }) {
           <div className="traj-outcome">{t.predicted_outcome}</div>
           <div className="traj-detail-grid">
             <div className="traj-detail-cell">
-              <div className="tdc-label">Why {t.recommended ? 'recommended' : 'considered'}</div>
-              <div className="tdc-value">{t.recommended ? t.why : t.why}</div>
+              <div className="tdc-label">{t.recommended ? 'Why recommended' : 'Why considered'}</div>
+              <div className="tdc-value">{t.why}</div>
             </div>
             <div className="traj-detail-cell">
               <div className="tdc-label">Counterfactual</div>
@@ -199,10 +199,10 @@ function TrajectoryPanel({ trajectories }) {
   const winner = rolls[0]
 
   const phaseLabel = {
-    initial: 'Initial — open criteria present',
-    patient_answered: 'Patient answered — record retrieval phase',
-    ready_to_submit: 'Ready — all criteria addressed',
-    heuristic: 'Heuristic mode',
+    initial: 'Initial',
+    patient_answered: 'Patient answered',
+    ready_to_submit: 'Ready',
+    heuristic: 'Heuristic',
   }[phase] || phase
 
   return (
@@ -214,7 +214,7 @@ function TrajectoryPanel({ trajectories }) {
           <span className="traj-phase-badge">{phaseLabel}</span>
         </div>
         <div className="traj-panel-meta">
-          <span className="traj-model-tag">Heuristic prior · improving with outcomes</span>
+          <span className="traj-model-tag">Heuristic prior</span>
           <span className={`traj-panel-toggle ${collapsed ? '' : 'open'}`}>▾</span>
         </div>
       </button>
@@ -225,7 +225,6 @@ function TrajectoryPanel({ trajectories }) {
           <div className="traj-winner">
             <div className="traj-winner-head">
               <span className="tw-star">★</span>
-              <span className="tw-label">Winning trajectory</span>
               <span className="tw-action">{ACTION_TYPE_LABEL[winner.action_type] || winner.action_type}: {winner.label}</span>
             </div>
             <div className="tw-outcome">{winner.predicted_outcome}</div>
@@ -316,7 +315,7 @@ function RecommendedAction({ action, onDecide, loading, large }) {
           <>
             <div className="ac-icon">✓</div>
             <h2>All criteria addressed</h2>
-            <p>Open the packet drawer to review the provenance-linked draft summary.</p>
+            <p>Open the packet drawer to review the draft.</p>
           </>
         ) : (
           <span>✓ All criteria addressed — open the packet drawer to review the draft summary.</span>
@@ -348,7 +347,7 @@ function RecommendedAction({ action, onDecide, loading, large }) {
           <textarea
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
-            placeholder="Enter patient or clinician answer — stored as patient-reported, not auto-verified…"
+            placeholder="Enter answer"
           />
           <div className="patient-reported-label">
             ◈ Will enter state as <strong>patient-reported</strong> — not clinician-verified
@@ -506,7 +505,7 @@ function CriterionCard({ crit, autoExpand, onDecide, loading }) {
               <div className="artifact-body">{art.body}</div>
               <div className="answer-section">
                 <textarea value={answer} onChange={(e) => setAnswer(e.target.value)}
-                  placeholder="Enter answer — stored as patient-reported, not auto-verified…" />
+            placeholder="Enter answer" />
                 <div className="patient-reported-label">
                   ◈ Will enter state as <strong>patient-reported</strong> — not clinician-verified
                 </div>
@@ -535,11 +534,11 @@ function PacketDrawer({ state, onClose }) {
         </div>
         <div className="drawer-body">
           <p style={{ fontSize: '.88rem', color: 'var(--slate)', marginBottom: '.75rem' }}>
-            {state?.packet?.service_requested} · {state?.packet?.status?.replaceAll('_', ' ')}
+            {state?.packet?.service_requested}{state?.packet?.status ? ` · ${state.packet.status.replaceAll('_', ' ')}` : ''}
           </p>
           {facts.length === 0 && (
             <p style={{ color: 'var(--slate)', fontSize: '.9rem' }}>
-              Approve conversation-enriched addenda to populate the packet.
+              Approve addenda to populate the packet.
             </p>
           )}
           {facts.map((f, i) => (
@@ -575,11 +574,11 @@ function LogDrawer({ tuples, onClose }) {
         </div>
         <div className="drawer-body">
           <p style={{ fontSize: '.82rem', color: 'var(--slate)', marginBottom: '.75rem' }}>
-            state_before → action → human_decision → state_after
-            <br />logged to <code>backend/logs/tuples.jsonl</code>
+            state → action → decision → state<br />
+            <code>backend/logs/tuples.jsonl</code>
           </p>
           {tuples.length === 0 && (
-            <p style={{ color: 'var(--slate)', fontSize: '.9rem' }}>HITL decisions append here.</p>
+            <p style={{ color: 'var(--slate)', fontSize: '.9rem' }}>No decisions yet.</p>
           )}
           {tuples.map((t, i) => (
             <div className="log-entry" key={i}>
@@ -658,11 +657,10 @@ function RecordPage({ onBack, onAnalyze, loading }) {
       </div>
 
       <div className="rec-header">
-        <div className="rec-title">Record a patient conversation</div>
+        <div className="rec-title">Record conversation</div>
         <div className="rec-sub">
-          Press the microphone to begin. Speech is transcribed live in your browser
-          — nothing leaves your device until you click "Analyze →".
-          {!supported && ' (Web Speech API not available in this browser — type the transcript manually below.)'}
+          Press the microphone to begin. Speech is transcribed in your browser — nothing leaves your device until you click Analyze.
+          {!supported && ' Web Speech API not available — type the transcript manually below.'}
         </div>
       </div>
 
@@ -687,29 +685,27 @@ function RecordPage({ onBack, onAnalyze, loading }) {
         <span>Live transcript</span>
         <span className="tx-word-count">{wordCount} words</span>
       </div>
-      <div
-        className="rec-live-tx"
+      <div className="rec-live-tx"
         contentEditable={!recording}
         suppressContentEditableWarning
         onBlur={(e) => setTranscript(e.currentTarget.textContent || '')}
       >
         {fullText
           ? <>{transcript}<em style={{ color: 'var(--slate)' }}>{interimText}</em>{recording && <span className="tx-cursor" />}</>
-          : <span className="tx-placeholder">Transcript will appear here… or type / paste manually.</span>
+          : <span className="tx-placeholder">Transcript will appear here, or type / paste manually.</span>
         }
       </div>
 
-      {/* Optional note */}
-      <div className="rec-note-label">Clinical note (optional — paste or type)</div>
+      <div className="rec-note-label">Clinical note (optional)</div>
       <textarea
         className="rec-note"
         value={note}
         onChange={(e) => setNote(e.target.value)}
-        placeholder="Paste the SOAP note here if available — improves evidence grounding…"
+        placeholder="Paste SOAP note if available"
       />
 
       {!canAnalyze && fullText.length > 0 && (
-        <div className="rec-warning">Transcript too short — speak or type at least a few sentences.</div>
+        <div className="rec-warning">Transcript too short — add more text.</div>
       )}
 
       <div className="rec-actions">
@@ -718,7 +714,7 @@ function RecordPage({ onBack, onAnalyze, loading }) {
           disabled={loading || !canAnalyze}
           onClick={() => onAnalyze(transcript + interimText, note)}
         >
-          {loading ? 'Analyzing…' : 'Analyze this conversation →'}
+          {loading ? 'Analyzing…' : 'Analyze →'}
         </button>
         <button className="btn btn-ghost" onClick={() => { setTranscript(''); setNote('') }}>
           Clear
@@ -745,16 +741,12 @@ function SelectPage({ encounters, onSelect, onRecord, loading }) {
     <div className="page-select page-content">
       {/* Hero */}
       <div className="select-hero">
-        <div className="eyebrow">Praxess · Hackathon demo</div>
-        <h1>Evidence from the room</h1>
-        <p className="tagline">
-          Mines ambient visit transcripts, clinical notes, and FHIR for prior auth evidence —
-          verifies every span, closes the documentation gap.
-        </p>
+        <div className="eyebrow">Praxess</div>
+        <h1>Prior auth evidence</h1>
       </div>
 
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 1.25rem 4rem' }}>
-        <div className="cases-label">Curated demo cases</div>
+        <div className="cases-label">Demo cases</div>
         <div className="encounter-cards">
           {curated.map((enc) => {
             const m = cardMeta(enc)
@@ -781,7 +773,7 @@ function SelectPage({ encounters, onSelect, onRecord, loading }) {
 
         {/* Record live conversation card */}
         <div style={{ marginBottom: '1.5rem' }}>
-          <div className="cases-label" style={{ marginTop: '.75rem' }}>Or record a new conversation</div>
+        <div className="cases-label" style={{ marginTop: '.75rem' }}>Live recording</div>
           <div
             className="encounter-card record-card"
             style={{ maxWidth: 340, cursor: 'pointer' }}
@@ -791,8 +783,7 @@ function SelectPage({ encounters, onSelect, onRecord, loading }) {
             <div className="card-title">Record patient conversation</div>
             <div className="card-service">Any case · transcript-only</div>
             <div className="card-desc">
-              Speak or paste a transcript from today's visit — agent mines it against
-              the lumbar MRI policy in real time.
+              Speak or paste a transcript — agent mines it against the lumbar MRI policy.
             </div>
             <button className="card-cta" disabled={loading} onClick={(e) => { e.stopPropagation(); onRecord() }}>
               Open recorder →
@@ -858,27 +849,27 @@ function EvidencePage({ state, trajectories, onDecide, loading, onBack, onGoActi
 
       {/* World model */}
       <div className="world-model">
-        <div className="wm-label">Evidence sources</div>
+          <div className="wm-label">Sources</div>
         <div className="sources-row">
           <SourceChip icon="🎙" name="Transcript"
-            meta={`${lp?.transcript_words ?? '—'} words · ambient visit recording`}
+            meta={`${lp?.transcript_words ?? '—'} words`}
             content={state.transcript?.slice(0, 600) + '…'} />
           <SourceChip icon="📄" name="Clinical note"
-            meta={`${lp?.note_words ?? '—'} words · SOAP-style`}
+            meta={`${lp?.note_words ?? '—'} words`}
             content={state.note?.slice(0, 600) + '…'} />
           <SourceChip icon="🔵" name="FHIR"
-            meta={`${lp?.fhir_resource_count ?? '—'} resources · encounter + longitudinal`}
+            meta={`${lp?.fhir_resource_count ?? '—'} resources`}
             badge={lp?.fhir_lbp_gap ? '⚠ LBP gap' : null}
             content={state.fhir_text?.slice(0, 600) + '…'} />
         </div>
         <div className="wm-connector">
           <div className="wm-connector-line" />
-          <div className="wm-connector-label">mined across 3 layers</div>
+          <div className="wm-connector-label">3 sources</div>
           <div className="wm-connector-arrow">▼</div>
         </div>
         <div className="state-row">
           <div className="state-row-head">
-            <span className="state-row-title">Current evidence state</span>
+            <span className="state-row-title">Evidence state</span>
             <span style={{ fontSize: '.8rem', color: 'var(--slate)' }}>
               {completeness?.addressed ?? 0}/{completeness?.total ?? 0} addressed
             </span>
@@ -898,7 +889,7 @@ function EvidencePage({ state, trajectories, onDecide, loading, onBack, onGoActi
         <TrajectoryPanel trajectories={trajectories} />
         <div className="wm-connector">
           <div className="wm-connector-line" />
-          <div className="wm-connector-label">highest-value action</div>
+          <div className="wm-connector-label">recommended action</div>
           <div className="wm-connector-arrow">▼</div>
         </div>
         <RecommendedAction action={state.case_recommended_action} onDecide={onDecide} loading={loading} />      </div>
@@ -906,7 +897,7 @@ function EvidencePage({ state, trajectories, onDecide, loading, onBack, onGoActi
       {/* Criteria cards */}
       {criteria.length > 0 && (
         <div className="criteria-section">
-          <div className="criteria-label">Criteria — click to inspect evidence</div>
+          <div className="criteria-label">Criteria</div>
           <div className="criteria-list">
             {criteria.map((c) => (
               <CriterionCard key={c.id} crit={c}
@@ -976,12 +967,12 @@ function ActionPage({ state, trajectories, onDecide, loading, onBack, setDrawer 
       </div>
 
       {/* Main action */}
-      <div className="action-hero-label">Recommended next action</div>
+      <div className="action-hero-label">Next action</div>
       {isComplete ? (
         <div className="action-complete">
           <div className="ac-icon">✓</div>
           <h2>All criteria addressed</h2>
-          <p>Open the packet drawer to review the provenance-linked draft summary.</p>
+          <p>Open the packet drawer to review the draft.</p>
           <button className="btn btn-primary" onClick={() => setDrawer('packet')}>
             View packet →
           </button>
