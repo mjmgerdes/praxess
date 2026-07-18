@@ -23,6 +23,11 @@ cd frontend && npm install && npm run dev
 
 Open http://localhost:5173 — curated encounters are marked ★. Default is the **2021 chronic low back pain** visit.
 
+**Demo loop UI:** http://localhost:5173/praxess-ui.html — the 7-screen closed-loop walkthrough
+(encounter → world model → decision engine → addendum → patient question → packet → submission/appeal),
+wired to the live engine (`ENGINE LIVE` chip = real `/api/analyze` + `/api/decide` round-trips; falls back
+to a self-contained walkthrough if the API is down). Demo script: [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
+
 Optional live re-mine: copy `.env.example` → `.env`, set `ANTHROPIC_API_KEY`, restart the API, click **Re-mine**.
 
 ## Dataset
