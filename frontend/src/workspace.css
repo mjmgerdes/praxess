@@ -442,6 +442,21 @@
 }
 .prx-open-case:hover { background: var(--ws-blue-dark); box-shadow: 0 8px 18px oklch(0.42 0.14 255 / .25); transform: translateY(-1px); }
 .prx-open-case:active { transform: none; }
+.prx-case-prepared {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 9px;
+  border: 1px solid oklch(0.84 0.055 160);
+  border-radius: 7px;
+  background: oklch(0.96 0.035 160);
+  color: oklch(0.45 0.09 160);
+  font: 600 8px/1 "IBM Plex Mono", monospace;
+  white-space: nowrap;
+}
+.prx-case-prepared i { width: 6px; height: 6px; border-radius: 50%; background: var(--ws-green); }
 .prx-case-empty { display: flex; min-height: 122px; align-items: center; justify-content: center; flex-direction: column; color: oklch(0.55 0.025 255); }
 .prx-case-empty strong { font-size: 11px; }
 .prx-case-empty span { margin-top: 4px; font-size: 9px; }

@@ -18,6 +18,7 @@ const CASES = [
     nextAction: 'Review clinical-note addendum',
     due: 'Today',
     updated: 'Just now',
+    openable: true,
     criteria: [
       { id: 'C1', state: 'documented' },
       { id: 'C2', state: 'documented' },
@@ -26,12 +27,87 @@ const CASES = [
       { id: 'C5', state: 'unknown' },
     ],
   },
+  {
+    id: 'DEMO-01',
+    patient: 'Renner, Julius',
+    initials: 'JR',
+    demographics: '35M',
+    procedure: 'MRI lumbar spine w/o contrast',
+    cpt: '72148',
+    payer: 'DemoCare Health Plan',
+    plan: 'Synthetic demo',
+    status: 'needs-action',
+    statusLabel: 'Patient input needed',
+    stage: 'Evidence recovery',
+    readiness: 62,
+    nextAction: 'Ask one PT-history question',
+    due: 'Next',
+    updated: 'Prepared',
+    openable: false,
+    criteria: [
+      { id: 'C1', state: 'documented' },
+      { id: 'C2', state: 'partial' },
+      { id: 'C3', state: 'partial' },
+      { id: 'C4', state: 'documented' },
+      { id: 'C5', state: 'partial' },
+    ],
+  },
+  {
+    id: 'DEMO-02',
+    patient: 'Casas, Eva',
+    initials: 'EC',
+    demographics: '62F',
+    procedure: 'MRI knee w/o contrast',
+    cpt: '73721',
+    payer: 'DemoCare Health Plan',
+    plan: 'Synthetic demo',
+    status: 'needs-action',
+    statusLabel: 'Clinician review',
+    stage: 'Addendum candidate',
+    readiness: 76,
+    nextAction: 'Review transcript-backed addendum',
+    due: 'Next',
+    updated: 'Prepared',
+    openable: false,
+    criteria: [
+      { id: 'C1', state: 'documented' },
+      { id: 'C2', state: 'documented' },
+      { id: 'C3', state: 'documented' },
+      { id: 'C4', state: 'partial' },
+      { id: 'C5', state: 'documented' },
+    ],
+  },
+  {
+    id: 'DEMO-03',
+    patient: "O'Reilly, Van",
+    initials: 'VO',
+    demographics: '42M',
+    procedure: 'Occupational therapy evaluation',
+    cpt: '97003',
+    payer: 'DemoCare Health Plan',
+    plan: 'Synthetic demo',
+    status: 'waiting',
+    statusLabel: 'Evidence confirmation',
+    stage: 'Patient question',
+    readiness: 68,
+    nextAction: 'Confirm no prior occupational therapy',
+    due: 'Next',
+    updated: 'Prepared',
+    openable: false,
+    criteria: [
+      { id: 'C1', state: 'documented' },
+      { id: 'C2', state: 'documented' },
+      { id: 'C3', state: 'partial' },
+      { id: 'C4', state: 'unknown' },
+      { id: 'C5', state: 'documented' },
+    ],
+  },
 ]
 
 const FILTERS = [
-  { id: 'all', label: 'All', count: 1 },
-  { id: 'needs-action', label: 'Needs action', count: 1 },
-  { id: 'waiting', label: 'Waiting', count: 0 },
+  { id: 'all', label: 'All', count: 4 },
+  { id: 'needs-action', label: 'Needs action', count: 3 },
+  { id: 'waiting', label: 'Waiting', count: 1 },
   { id: 'ready', label: 'Ready', count: 0 },
 ]
 
@@ -94,7 +170,7 @@ export default function CaseWorkspace({ onOpenCase }) {
           <div className="prx-workspace-nav-active" aria-current="page">
             <QueueIcon />
             <span>Case queue</span>
-            <b>1</b>
+            <b>4</b>
           </div>
           <div className="prx-workspace-model-card">
             <div className="prx-workspace-model-head">
@@ -122,25 +198,25 @@ export default function CaseWorkspace({ onOpenCase }) {
             </div>
             <div className="prx-workspace-clock">
               <span>DEMO SHIFT</span>
-              <strong>1 active case</strong>
+              <strong>4 prepared · 1 interactive</strong>
             </div>
           </div>
 
           <section className="prx-workspace-metrics" aria-label="Queue summary">
             <article>
-              <span>Active cases</span>
-              <strong>01</strong>
-              <small>In current workspace</small>
+              <span>Prepared cases</span>
+              <strong>04</strong>
+              <small>Synthetic demo records</small>
             </article>
             <article className="is-action">
-              <span>Needs clinician</span>
+              <span>Interactive cases</span>
               <strong>01</strong>
-              <small>Human gate waiting</small>
+              <small>Full closed-loop path</small>
             </article>
             <article>
               <span>Open evidence gaps</span>
-              <strong>02</strong>
-              <small>Across active cases</small>
+              <strong>07</strong>
+              <small>Across prepared cases</small>
             </article>
             <article className="is-model">
               <span>Model activity</span>
@@ -230,9 +306,15 @@ export default function CaseWorkspace({ onOpenCase }) {
                     <small>Due {caseItem.due}</small>
                   </div>
 
-                  <button type="button" className="prx-open-case" onClick={() => onOpenCase(caseItem.id)}>
-                    Open case <ArrowIcon />
-                  </button>
+                  {caseItem.openable ? (
+                    <button type="button" className="prx-open-case" onClick={() => onOpenCase(caseItem.id)}>
+                      Open case <ArrowIcon />
+                    </button>
+                  ) : (
+                    <div className="prx-case-prepared" aria-label="Synthetic case data prepared">
+                      <i /> Data ready
+                    </div>
+                  )}
                 </article>
               ))}
               {visibleCases.length === 0 && (
